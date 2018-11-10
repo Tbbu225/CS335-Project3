@@ -80,7 +80,7 @@ public class ControlPointView extends JFrame {
 
             //Jframe to hold it
             settings_panel = new JFrame("Settings");
-            settings_panel.setLayout(new GridLayout(3,2,10,10));
+            settings_panel.setLayout(new GridLayout(3,2,40,40));
 
             //labels for button
             frames_sec_label = new JLabel("Frames per Second");
@@ -121,7 +121,6 @@ public class ControlPointView extends JFrame {
             System.exit(0);
         }
     }
-
 
     //buttons operated by settings pop up menu
     //this one sets the values of seconds and frames per second

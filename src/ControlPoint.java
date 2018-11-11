@@ -1,18 +1,29 @@
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 public class ControlPoint {
 
-    public static void main(String[] args) {
+    public Point location;
+    private HashSet<ControlPoint> adjacentPoints;
 
-        ControlPointView v = new ControlPointView();
-        v.addWindowListener(new WindowAdapter()
-        {
-            public void windowClosing(WindowEvent e)
-            {
-                System.exit(0);
-            }
-        });
-
+    public ControlPoint(int x, int y) {
+        location = new Point(x,y);
+        adjacentPoints = new HashSet<>(8);
     }
+
+    public void addAdjacentPoint(ControlPoint controlPoint) {
+        if (adjacentPoints.size() == 8)
+            return;
+
+        adjacentPoints.add(controlPoint);
+    }
+
+    public ArrayList<ControlPoint> getAdjacencySet() {
+        ArrayList<ControlPoint> adjacent = new ArrayList<>(adjacentPoints.size());
+        adjacent.addAll(adjacentPoints);
+
+        return adjacent;
+    }
+
 }

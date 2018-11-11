@@ -6,7 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 
-public class ControlPointView extends JFrame {
+public class WarpView extends JFrame {
 
     //Jpanels to hold gui
     private JPanel button_panel;
@@ -28,7 +28,7 @@ public class ControlPointView extends JFrame {
     private int frames_sec, seconds;
 
     //constructor
-    public ControlPointView()
+    public WarpView()
     {
         initialize_GUI();
     }

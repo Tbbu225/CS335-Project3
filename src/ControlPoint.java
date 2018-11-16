@@ -2,14 +2,13 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-public class ControlPoint {
+public class ControlPoint extends Point {
 
-    public Point location;
     public boolean isSelected, isVisible;
     private HashSet<ControlPoint> adjacentPoints;
 
     public ControlPoint(int x, int y) {
-        location = new Point(x,y);
+        super(x,y);
         isSelected = isVisible = false;
         adjacentPoints = new HashSet<>(8);
     }

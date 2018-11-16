@@ -14,29 +14,30 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
     private ArrayList<ControlPoint> mappingPoints;
     private int gridSize;
     private int pointSize;
-    private int gridLength, gridHeight;
+    private int imageLength, imageHeight;
     private ControlPoint clickedPoint;
 
-    public MappedImage(String imagePath, int gridSize, int length, int height, int pointSize) {
+    public MappedImage(String imagePath, int size, int length, int height, int radius) {
         super();
-        this.gridSize = gridSize;
-        this.pointSize = pointSize;
-        gridLength = length;
-        gridHeight = height;
+        setBackground(Color.WHITE);
+
+        image = null;
+        gridSize = size;
+        pointSize = radius;
+        imageLength = length;
+        imageHeight = height;
 
         mappingPoints = new ArrayList<>((gridSize + 2) * (gridSize + 2));
 
         clickedPoint = null;
 
-        getImage(imagePath);
+        int widthInc = imageLength / (gridSize + 1);
+        int heightInc = imageHeight / (gridSize + 1);
 
-        int widthInc = image.getWidth() / (gridSize + 1);
-        int heightInc = image.getHeight() / (gridSize + 1);
+        for (int y = 0; y <= imageHeight; y += heightInc)
+            for (int x = 0; x <= imageLength; x += widthInc) {
 
-        for (int y = 0; y <= image.getHeight(); y += heightInc)
-            for (int x = 0; x <= image.getWidth(); x += widthInc) {
-
-                ControlPoint newPoint = new ControlPoint(x, y);
+                ControlPoint newPoint = new ControlPoint(x, y, 6);
 
                 int xVal = newPoint.x;
                 int yVal = newPoint.y;
@@ -48,18 +49,42 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
                 mappingPoints.add(newPoint);
             }
 
-        for (ControlPoint controlPoint : mappingPoints)
-            for (ControlPoint otherControlPoint : mappingPoints)
-                if (Math.abs(controlPoint.x - otherControlPoint.x) <= widthInc
-                        && Math.abs(controlPoint.y - otherControlPoint.y) <= heightInc
-                        && controlPoint != otherControlPoint)
-                    controlPoint.addAdjacentPoint(otherControlPoint);
+        formGrid();
 
         repaint();
 
         addMouseListener(this);
         addMouseMotionListener(this);
 
+    }
+
+    public MappedImage(MappedImage mappedImage, boolean keepImage) {
+        super();
+        setBackground(Color.WHITE);
+
+        this.image = null;
+        this.gridSize = mappedImage.gridSize;
+        this.pointSize = mappedImage.pointSize;
+        this.imageLength = mappedImage.imageLength;
+        this.imageHeight = mappedImage.imageHeight;
+        this.clickedPoint = mappedImage.clickedPoint;
+
+        if(keepImage) {
+            this.image = new BufferedImage(mappedImage.image.getWidth(),
+                    mappedImage.image.getHeight(),
+                    mappedImage.image.getType());
+            this.image.getGraphics().drawImage(mappedImage.image, 0, 0, null);
+        }
+
+        this.mappingPoints = new ArrayList<>(mappedImage.mappingPoints.size());
+
+        for (int i = 0; i < mappedImage.mappingPoints.size(); i++) {
+            ControlPoint oldPoint = mappedImage.mappingPoints.get(i);
+            ControlPoint newPoint = new ControlPoint(oldPoint.x, oldPoint.y, oldPoint.getAdjacenyMaximum());
+            this.mappingPoints.add(newPoint);
+            if(oldPoint.isVisible)
+                newPoint.isVisible = true;
+        }
     }
 
     public void getImage(String imagePath) {
@@ -74,9 +99,9 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
         int height = originalImage.getHeight();
         int width = originalImage.getWidth();
 
-        Image scaledImage = originalImage.getScaledInstance(gridLength, gridHeight, Image.SCALE_SMOOTH);
+        Image scaledImage = originalImage.getScaledInstance(imageLength, imageHeight, Image.SCALE_SMOOTH);
 
-        image = new BufferedImage(gridLength, gridHeight, originalImage.getType());
+        image = new BufferedImage(imageLength, imageHeight, originalImage.getType());
 
         Graphics2D bufferGraphics = image.createGraphics();
         bufferGraphics.drawImage(scaledImage, 0, 0, null);
@@ -107,7 +132,10 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
 
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(image.getWidth(), image.getHeight());
+        if (image != null)
+            return new Dimension(image.getWidth(), image.getHeight());
+        else
+            return new Dimension(this.imageLength, this.imageHeight);
     }
 
     @Override
@@ -159,5 +187,19 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
                 + (location.y - controlPoint.y) * (location.y - controlPoint.y)) <= pointSize/2;
     }
 
+    private void formGrid() {
+        int widthInc = imageLength / (gridSize + 1);
+        int heightInc = imageHeight / (gridSize + 1);
+
+        for (ControlPoint controlPoint : mappingPoints)
+            for (ControlPoint otherControlPoint : mappingPoints) {
+                int distanceX = controlPoint.x - otherControlPoint.x;
+                int distanceY = controlPoint.y - otherControlPoint.y;
+                if (Math.abs(distanceX) <= widthInc && Math.abs(distanceY) <= heightInc
+                        && !(distanceX < 0 && distanceY < 0) && !(distanceX > 0 && distanceY > 0)
+                        && controlPoint != otherControlPoint)
+                    controlPoint.addAdjacentPoint(otherControlPoint);
+            }
+    }
 
 }

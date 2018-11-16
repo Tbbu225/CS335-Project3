@@ -35,22 +35,29 @@ public class WarpView extends JFrame {
 //    private BufferedImage left_image, right_image, temp_image;
 //    private JLabel left_image_label, right_image_label;
 
+    //flag for which image to load
     private Boolean load_left_flag;
 
     private Container c;
 
-    private MappedImage orig_img, dest_img;
+    //mapped image objects
+    private MappedImage orig_img, dest_img, morphing_img;
+
+    //Timer to control time of morph
+    private Timer morph_timer;
 
     //constructor
     public WarpView()
     {
+        //set initial values to 5
+        frames_sec = 5;
+        seconds = 5;
 
         //constructor to load mapped image
         orig_img = new MappedImage( 12, 450,600, 8);
         dest_img = new MappedImage( 12, 450, 600, 8);
 
         initialize_GUI();
-
 
     }
 
@@ -89,7 +96,7 @@ public class WarpView extends JFrame {
         preview_morph_button.addActionListener(new preview_morph());
 
         morph_button = new JButton("Morph");
-        button_panel.add(morph_button);
+//        button_panel.add(morph_button);
         morph_button.addActionListener(new image_morph());
 /*
         //taking care of image labels
@@ -251,11 +258,26 @@ public class WarpView extends JFrame {
     class preview_morph implements ActionListener{
         public void actionPerformed(ActionEvent e){
 
+            find_increments();
+
             preview_frame = new JFrame("Preview Morph");
 
-            //add call for preview here
+            morphing_img = new MappedImage(orig_img,true);
 
-            preview_frame.setSize(600,700);
+            //timer actives every
+            morph_timer = new Timer((1000*seconds)/frames_sec, new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    morph_old_to_new();
+                    repaint();
+                }
+            });
+
+            morph_timer.start();
+
+            preview_frame.add(morphing_img);
+
+            preview_frame.setSize(orig_img.getWidth()+50,orig_img.getHeight()+50);
             preview_frame.setVisible(true);
         }
     }
@@ -265,9 +287,18 @@ public class WarpView extends JFrame {
             morph_frame = new JFrame("Morph");
 
             //add call for morph here
-
-            morph_frame.setSize(600,700);
+            morph_frame.setSize(orig_img.getHeight(),orig_img.getWidth());
             morph_frame.setVisible(true);
         }
+    }
+
+    public void morph_old_to_new()
+    {
+
+    }
+
+    public void find_increments()
+    {
+
     }
 }

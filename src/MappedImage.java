@@ -17,7 +17,7 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
     private int imageLength, imageHeight;
     private ControlPoint clickedPoint;
 
-    public MappedImage(String imagePath, int size, int length, int height, int radius) {
+    public MappedImage(int size, int length, int height, int radius) {
         super();
         setBackground(Color.WHITE);
 
@@ -69,7 +69,7 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
         this.imageHeight = mappedImage.imageHeight;
         this.clickedPoint = mappedImage.clickedPoint;
 
-        if(keepImage) {
+        if(keepImage && mappedImage.image != null) {
             this.image = new BufferedImage(mappedImage.image.getWidth(),
                     mappedImage.image.getHeight(),
                     mappedImage.image.getType());

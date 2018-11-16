@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.util.ArrayList;
 
 public class WarpView extends JFrame {
 
@@ -31,10 +32,6 @@ public class WarpView extends JFrame {
     //filechooser to pick files
     private JFileChooser file_choose;
 
-    //sets up images
-//    private BufferedImage left_image, right_image, temp_image;
-//    private JLabel left_image_label, right_image_label;
-
     //flag for which image to load
     private Boolean load_left_flag;
 
@@ -46,6 +43,12 @@ public class WarpView extends JFrame {
     //Timer to control time of morph
     private Timer morph_timer;
 
+    private int timer_counter;
+/*
+    private ArrayList<ControlPoint> original_map_points, final_map_points;
+    private ArrayList<Float> x_inc, y_inc;
+  */
+
     //constructor
     public WarpView()
     {
@@ -54,8 +57,8 @@ public class WarpView extends JFrame {
         seconds = 5;
 
         //constructor to load mapped image
-        orig_img = new MappedImage( 12, 450,600, 8);
-        dest_img = new MappedImage( 12, 450, 600, 8);
+        orig_img = new MappedImage( 10, 450,600, 8);
+        dest_img = new MappedImage( 10, 450, 600, 8);
 
         initialize_GUI();
 
@@ -98,13 +101,8 @@ public class WarpView extends JFrame {
         morph_button = new JButton("Morph");
 //        button_panel.add(morph_button);
         morph_button.addActionListener(new image_morph());
-/*
-        //taking care of image labels
-        left_image_label = new JLabel();
-        right_image_label = new JLabel();
-        left_image_label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        right_image_label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-*/
+
+        //image panel- holds images
         image_panel = new JPanel();
         image_panel.setLayout(new GridLayout(1,2,10,10));
 
@@ -132,20 +130,19 @@ public class WarpView extends JFrame {
         {
             File file = file_choose.getSelectedFile();
 
+            //loads left image
             if(load_left_flag == true) {
                 try {
                     orig_img.getImage(file.getAbsolutePath());
-                    //left_image = ImageIO.read(file);
-                } catch (Exception e) {}
+                } catch (Exception e) {e.printStackTrace();}
                 orig_img.setVisible(true);
                 repaint();
             }
-            else
+            else//loads right image
             {
                 try {
                     dest_img.getImage((file.getAbsolutePath()));
-                    //right_image = ImageIO.read(file);
-                } catch (Exception e) {}
+                } catch (Exception e) {e.printStackTrace();}
                 dest_img.setVisible(true);
                 repaint();
             }
@@ -258,18 +255,25 @@ public class WarpView extends JFrame {
     class preview_morph implements ActionListener{
         public void actionPerformed(ActionEvent e){
 
+            //finds distances in between points
             find_increments();
 
             preview_frame = new JFrame("Preview Morph");
 
             morphing_img = new MappedImage(orig_img,true);
+            timer_counter = 0;
 
-            //timer actives every
+            //timer actives every frame
             morph_timer = new Timer((1000*seconds)/frames_sec, new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
                     morph_old_to_new();
                     repaint();
+
+                    //counter so that morph_timer will stop after going through all the frames
+                    timer_counter++;
+                    if(timer_counter == seconds*frames_sec)
+                        morph_timer.stop();
                 }
             });
 
@@ -277,7 +281,7 @@ public class WarpView extends JFrame {
 
             preview_frame.add(morphing_img);
 
-            preview_frame.setSize(orig_img.getWidth()+50,orig_img.getHeight()+50);
+            preview_frame.setSize(orig_img.getWidth()+30,orig_img.getHeight()+20);
             preview_frame.setVisible(true);
         }
     }
@@ -294,11 +298,34 @@ public class WarpView extends JFrame {
 
     public void morph_old_to_new()
     {
-
+/*
+    for (int i = 0; i < morphing_img.getGridSize(); i++)
+    {
+        //affine transformation?
+    }
+ */
     }
 
     public void find_increments()
     {
+/*
+        //gets grid of increments
+        int num_increments = seconds*frames_sec;
+        x_inc = new ArrayList<Float>(morphing_img.getGridSize() * morphing_img.getGridSize());
+        y_inc = new ArrayList<Float>(morphing_img.getGridSize() * morphing_img.getGridSize());
 
+        original_map_points = new ArrayList<ControlPoint>();
+        original_map_points = orig_img.getMappingPoints();
+
+        final_map_points = new ArrayList<ControlPoint>();
+        final_map_points = dest_img.getMappingPoints();
+  */
+        //for loop to pull increments
+        for(int i = 0; i< morphing_img.getGridSize(); i++)
+        {
+            //control point pull data, subtract the two
+//            x_inc[i] = (float)((original_map_points[i]-final_map_points[i]) /num_increments);
+            //y_inc[j] = /num_increments;
+        }
     }
 }

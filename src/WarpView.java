@@ -47,8 +47,8 @@ public class WarpView extends JFrame {
     //array to hold increment amounts
     private double[][] inc_x_array, inc_y_array;
 
-    private ControlPoint[][] orig_points, end_points;
-    
+    private ControlPoint[][] orig_points, end_points, morph_points;
+
     //constructor
     public WarpView()
     {
@@ -298,15 +298,18 @@ public class WarpView extends JFrame {
 
     public void morph_old_to_new()
     {
+        //morph points to feed back into morph)ima
+        morph_points = morphing_img.getMappingPoints();
 
         for(int i = 0; i<morphing_img.getHeight(); i++)
         {
             for(int j = 0; j < morphing_img.getWidth(); j++)
             {
-                //
+                morph_points[i][j].setLocation(morph_points[i][j].getX() +inc_x_array[i][j],morph_points[i][j].getY()+inc_y_array[i][j]);
+                morphing_img.setMappingPoints(morph_points);
+                repaint();
             }
         }
-
     }
 
     public void find_increments()
@@ -319,14 +322,14 @@ public class WarpView extends JFrame {
         end_points = dest_img.getMappingPoints();
 
         //for loop to get increments
-        for(int i = 0; i<morphing_img.getHeight(); i++)
+        for(int i = 0; i<morphing_img.getMappingPoints().length; i++)
         {
-            for(int j = 0; j < morphing_img.getWidth(); j++)
+            for(int j = 0; j < morphing_img.getMappingPoints().length; j++)
             {
                 inc_x_array[i][j] =  (orig_points[i][j].getX() - end_points[i][j].getX())/num_increments;
                 inc_y_array[i][j] =  (orig_points[i][j].getY() - end_points[i][j].getY())/num_increments;
 
             }
         }
-
-    }}
+    }
+}

@@ -77,6 +77,9 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
         this.imageHeight = mappedImage.imageHeight;
         this.clickedPoint = mappedImage.clickedPoint;
 
+        this.associatedImages = new ArrayList<>(mappedImage.associatedImages.size());
+        this.associatedImages.addAll(mappedImage.associatedImages);
+
         if(keepImage && mappedImage.image != null) {
             this.image = new BufferedImage(mappedImage.image.getWidth(),
                     mappedImage.image.getHeight(),
@@ -126,8 +129,11 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
         this.mappingPoints = mappingPoints;
     }
 
-    public void setAssociatedImages(MappedImage image) {
+    public void setAssociatedImage(MappedImage image) {
+        if(this.associatedImages.contains(image) || image.associatedImages.contains(this))
+            return;
         associatedImages.add(image);
+        image.associatedImages.add(this);
     }
 
     @Override

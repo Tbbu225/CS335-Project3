@@ -321,7 +321,7 @@ public class WarpView extends JFrame {
         final_map_points = dest_img.getMappingPoints();
   */
         //for loop to pull increments
-        for(int i = 0; i< morphing_img.getGridSize(); i++)
+       // for(int i = 0; i< morphing_img.getGridSize(); i++)
         {
             //control point pull data, subtract the two
 //            x_inc[i] = (float)((original_map_points[i]-final_map_points[i]) /num_increments);

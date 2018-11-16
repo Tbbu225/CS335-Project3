@@ -19,9 +19,7 @@ public class ControlPoint extends Point {
         if (adjacentPoints.size() == adjacenyMaximum)
             return;
 
-        if(!this.adjacentPoints.contains(controlPoint))
             adjacentPoints.add(controlPoint);
-        if(!controlPoint.adjacentPoints.contains(this))
             controlPoint.adjacentPoints.add(this);
     }
 

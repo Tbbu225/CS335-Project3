@@ -1,16 +1,13 @@
 //package PACKAGE_NAME;
 //Keeping on working
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
 
 public class WarpView extends JFrame {
 
@@ -35,18 +32,36 @@ public class WarpView extends JFrame {
     //filechooser to pick files
     private JFileChooser file_choose;
 
-    //sets up images
-    private BufferedImage left_image, right_image, temp_image;
-    private JLabel left_image_label, right_image_label;
-
+    //flag for which image to load
     private Boolean load_left_flag;
 
     private Container c;
 
+    //mapped image objects
+    private MappedImage orig_img, dest_img, morphing_img;
+
+    //Timer to control time of morph
+    private Timer morph_timer;
+
+    private int timer_counter;
+/*
+    private ArrayList<ControlPoint> original_map_points, final_map_points;
+    private ArrayList<Float> x_inc, y_inc;
+  */
+
     //constructor
     public WarpView()
     {
+        //set initial values to 5
+        frames_sec = 5;
+        seconds = 5;
+
+        //constructor to load mapped image
+        orig_img = new MappedImage( 10, 450,600, 8);
+        dest_img = new MappedImage( 10, 450, 600, 8);
+
         initialize_GUI();
+
     }
 
     //method where all the GUI initialization actually happens
@@ -84,20 +99,15 @@ public class WarpView extends JFrame {
         preview_morph_button.addActionListener(new preview_morph());
 
         morph_button = new JButton("Morph");
-        button_panel.add(morph_button);
+//        button_panel.add(morph_button);
         morph_button.addActionListener(new image_morph());
 
-        //taking care of image labels
-        left_image_label = new JLabel();
-        right_image_label = new JLabel();
-        left_image_label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        right_image_label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-
+        //image panel- holds images
         image_panel = new JPanel();
-        image_panel.setLayout(new GridLayout(1,2));
+        image_panel.setLayout(new GridLayout(1,2,10,10));
 
-        image_panel.add(left_image_label);
-        image_panel.add(right_image_label);
+        image_panel.add(orig_img);
+        image_panel.add(dest_img);
 
         //initializing container
         c = getContentPane();
@@ -120,17 +130,21 @@ public class WarpView extends JFrame {
         {
             File file = file_choose.getSelectedFile();
 
+            //loads left image
             if(load_left_flag == true) {
                 try {
-                    left_image = ImageIO.read(file);
-                } catch (IOException e) {}
-
+                    orig_img.getImage(file.getAbsolutePath());
+                } catch (Exception e) {e.printStackTrace();}
+                orig_img.setVisible(true);
+                repaint();
             }
-            else
+            else//loads right image
             {
                 try {
-                    right_image = ImageIO.read(file);
-                } catch (IOException e) {}
+                    dest_img.getImage((file.getAbsolutePath()));
+                } catch (Exception e) {e.printStackTrace();}
+                dest_img.setVisible(true);
+                repaint();
             }
         }
     }
@@ -241,11 +255,33 @@ public class WarpView extends JFrame {
     class preview_morph implements ActionListener{
         public void actionPerformed(ActionEvent e){
 
+            //finds distances in between points
+            find_increments();
+
             preview_frame = new JFrame("Preview Morph");
 
-            //add call for preview here
+            morphing_img = new MappedImage(orig_img,true);
+            timer_counter = 0;
 
-            preview_frame.setSize(600,700);
+            //timer actives every frame
+            morph_timer = new Timer((1000*seconds)/frames_sec, new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    morph_old_to_new();
+                    repaint();
+
+                    //counter so that morph_timer will stop after going through all the frames
+                    timer_counter++;
+                    if(timer_counter == seconds*frames_sec)
+                        morph_timer.stop();
+                }
+            });
+
+            morph_timer.start();
+
+            preview_frame.add(morphing_img);
+
+            preview_frame.setSize(orig_img.getWidth()+30,orig_img.getHeight()+20);
             preview_frame.setVisible(true);
         }
     }
@@ -255,9 +291,41 @@ public class WarpView extends JFrame {
             morph_frame = new JFrame("Morph");
 
             //add call for morph here
-
-            morph_frame.setSize(600,700);
+            morph_frame.setSize(orig_img.getHeight(),orig_img.getWidth());
             morph_frame.setVisible(true);
+        }
+    }
+
+    public void morph_old_to_new()
+    {
+/*
+    for (int i = 0; i < morphing_img.getGridSize(); i++)
+    {
+        //affine transformation?
+    }
+ */
+    }
+
+    public void find_increments()
+    {
+/*
+        //gets grid of increments
+        int num_increments = seconds*frames_sec;
+        x_inc = new ArrayList<Float>(morphing_img.getGridSize() * morphing_img.getGridSize());
+        y_inc = new ArrayList<Float>(morphing_img.getGridSize() * morphing_img.getGridSize());
+
+        original_map_points = new ArrayList<ControlPoint>();
+        original_map_points = orig_img.getMappingPoints();
+
+        final_map_points = new ArrayList<ControlPoint>();
+        final_map_points = dest_img.getMappingPoints();
+  */
+        //for loop to pull increments
+        for(int i = 0; i< morphing_img.getGridSize(); i++)
+        {
+            //control point pull data, subtract the two
+//            x_inc[i] = (float)((original_map_points[i]-final_map_points[i]) /num_increments);
+            //y_inc[j] = /num_increments;
         }
     }
 }

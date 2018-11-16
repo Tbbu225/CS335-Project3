@@ -7,6 +7,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class MappedImage extends JPanel implements MouseListener, MouseMotionListener{
@@ -248,7 +249,5 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
                     mappingPoints[row][column].addAdjacentPoint(mappingPoints[up][right]);
             }
         }
-
     }
-
 }

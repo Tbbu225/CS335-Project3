@@ -1,16 +1,12 @@
 //package PACKAGE_NAME;
 //Keeping on working
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 
 public class WarpView extends JFrame {
 
@@ -36,17 +32,26 @@ public class WarpView extends JFrame {
     private JFileChooser file_choose;
 
     //sets up images
-    private BufferedImage left_image, right_image, temp_image;
-    private JLabel left_image_label, right_image_label;
+//    private BufferedImage left_image, right_image, temp_image;
+//    private JLabel left_image_label, right_image_label;
 
     private Boolean load_left_flag;
 
     private Container c;
 
+    private MappedImage orig_img, dest_img;
+
     //constructor
     public WarpView()
     {
+
+        //constructor to load mapped image
+        orig_img = new MappedImage( 12, 450,600, 8);
+        dest_img = new MappedImage( 12, 450, 600, 8);
+
         initialize_GUI();
+
+
     }
 
     //method where all the GUI initialization actually happens
@@ -86,18 +91,18 @@ public class WarpView extends JFrame {
         morph_button = new JButton("Morph");
         button_panel.add(morph_button);
         morph_button.addActionListener(new image_morph());
-
+/*
         //taking care of image labels
         left_image_label = new JLabel();
         right_image_label = new JLabel();
         left_image_label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         right_image_label.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-
+*/
         image_panel = new JPanel();
-        image_panel.setLayout(new GridLayout(1,2));
+        image_panel.setLayout(new GridLayout(1,2,10,10));
 
-        image_panel.add(left_image_label);
-        image_panel.add(right_image_label);
+        image_panel.add(orig_img);
+        image_panel.add(dest_img);
 
         //initializing container
         c = getContentPane();
@@ -122,15 +127,20 @@ public class WarpView extends JFrame {
 
             if(load_left_flag == true) {
                 try {
-                    left_image = ImageIO.read(file);
-                } catch (IOException e) {}
-
+                    orig_img.getImage(file.getAbsolutePath());
+                    //left_image = ImageIO.read(file);
+                } catch (Exception e) {}
+                orig_img.setVisible(true);
+                repaint();
             }
             else
             {
                 try {
-                    right_image = ImageIO.read(file);
-                } catch (IOException e) {}
+                    dest_img.getImage((file.getAbsolutePath()));
+                    //right_image = ImageIO.read(file);
+                } catch (Exception e) {}
+                dest_img.setVisible(true);
+                repaint();
             }
         }
     }

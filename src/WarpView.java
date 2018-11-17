@@ -273,8 +273,10 @@ public class WarpView extends JFrame {
 
                     //counter so that morph_timer will stop after going through all the frames
                     timer_counter++;
-                    if(timer_counter == (seconds*frames_sec)-1)
+                    if(timer_counter == (seconds*frames_sec)-1) {
                         morph_timer.stop();
+                        finalize_morph();
+                    }
                 }
             });
 
@@ -308,9 +310,22 @@ public class WarpView extends JFrame {
             {
                 morph_points[i][j].setLocation(morph_points[i][j].getX() +inc_x_array[i][j],morph_points[i][j].getY()+inc_y_array[i][j]);
                 morphing_img.setMappingPoints(morph_points);
-                //repaint();
             }
         }
+
+    }
+
+    public void finalize_morph()
+    {
+        for(int i = 0; i<morphing_img.getGridSize(); i++)
+        {
+            for(int j = 0; j < morphing_img.getGridSize(); j++)
+            {
+                morph_points[i][j].setLocation(end_points[i][j].getX(),end_points[i][j].getY());
+                morphing_img.setMappingPoints(morph_points);
+            }
+        }
+        morphing_img.repaint();
     }
 
     public void find_increments()

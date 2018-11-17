@@ -308,7 +308,7 @@ public class WarpView extends JFrame {
             {
                 morph_points[i][j].setLocation(morph_points[i][j].getX() +inc_x_array[i][j],morph_points[i][j].getY()+inc_y_array[i][j]);
                 morphing_img.setMappingPoints(morph_points);
-                repaint();
+                //repaint();
             }
         }
     }

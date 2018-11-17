@@ -61,8 +61,9 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
         associatedImages = new ArrayList<>();
 
         //Set sizes of points, the grid, and the MappedImage
-        //itself based on given paramters
-        gridSize = size;
+        //itself based on given parameters. +2 is added to gridSize
+        //for points at the edge of the image
+        gridSize = size + 2;
         pointSize = radius;
         imageLength = length;
         imageHeight = height;
@@ -70,14 +71,14 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
         //Allocate the grid to be the given size + 2 squared;
         //This is done to have invisible control points that exist
         //on the edge of the panel
-        mappingPoints = new ControlPoint[gridSize + 2][gridSize + 2];
+        mappingPoints = new ControlPoint[gridSize][gridSize];
 
         //Set the clicked point to null
         clickedPoint = null;
 
         //Calculate the distance between points vertically and horizontally
-        int widthInc = imageLength / (gridSize + 1);
-        int heightInc = imageHeight / (gridSize + 1);
+        int widthInc = imageLength / (gridSize - 1);
+        int heightInc = imageHeight / (gridSize - 1);
 
         //Set the appropriate x and y values for the points on the grid
         for (int row = 0; row < mappingPoints.length; row++)
@@ -88,9 +89,9 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
                 //make sure it goes to the very edge of the image
                 int rowVal = heightInc * row;
                 int columnVal = widthInc * column;
-                if (row == heightInc * (gridSize + 1))
+                if (row == heightInc * (gridSize - 1))
                     rowVal = imageHeight;
-                if (column == widthInc * (gridSize + 1))
+                if (column == widthInc * (gridSize - 1))
                     columnVal = imageLength;
 
                 //Create a new control point
@@ -120,19 +121,27 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
 
     //Copy Constructor
     public MappedImage(MappedImage mappedImage, boolean keepImage) {
+        //Call JPanel constructor and set the background
         super();
         setBackground(Color.WHITE);
 
+        //Set image to null
         this.image = null;
+
+        //Copy members from provided MappedImage
         this.gridSize = mappedImage.gridSize;
         this.pointSize = mappedImage.pointSize;
         this.imageLength = mappedImage.imageLength;
         this.imageHeight = mappedImage.imageHeight;
         this.clickedPoint = mappedImage.clickedPoint;
 
+        //Copy the associatedImages list from the provided MappedImage
         this.associatedImages = new ArrayList<>(mappedImage.associatedImages.size());
         this.associatedImages.addAll(mappedImage.associatedImages);
 
+        //If the image is wanted to be copied as well,
+        //Take the original image from the provided MappedImage and
+        //Draw it onto a new image in this one
         if(keepImage && mappedImage.image != null) {
             this.image = new BufferedImage(mappedImage.image.getWidth(),
                     mappedImage.image.getHeight(),
@@ -140,48 +149,59 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
             this.image.getGraphics().drawImage(mappedImage.image, 0, 0, null);
         }
 
-        this.mappingPoints = new ControlPoint[gridSize+2][gridSize+2];
+        //Allocate list of control points
+        this.mappingPoints = new ControlPoint[gridSize][gridSize];
 
+        //Create new control points based on the old control points in the provided MappedImage
         for (int row = 0; row < mappingPoints.length; row++) {
             for (int column = 0; column < mappingPoints[row].length; column++) {
                 ControlPoint oldPoint = mappedImage.mappingPoints[row][column];
-                ControlPoint newPoint = new ControlPoint(oldPoint.x, oldPoint.y, oldPoint.getAdjacenyMaximum());
+                ControlPoint newPoint = new ControlPoint(oldPoint.x, oldPoint.y, oldPoint.getAdjacencyMaximum());
                 this.mappingPoints[row][column] = newPoint;
                 if (oldPoint.isVisible)
                     newPoint.isVisible = true;
             }
         }
 
+        //Connect the new points together
         formGrid();
-
-
     }
 
+    //Method to get images for the class
     public void getImage(String imagePath) {
-        BufferedImage originalImage;
+
+        //Try to read in an image from the provide path.
+        //If that fails, set the image to null and return
         try {
-            originalImage = ImageIO.read(new File(imagePath));
-        } catch (IOException e) {
+
+            //Read in image into a temporary image
+            BufferedImage originalImage = ImageIO.read(new File(imagePath));
+
+            //Resize the image to fit inside the dimension of the mapped image
+            Image scaledImage = originalImage.getScaledInstance(imageLength, imageHeight, Image.SCALE_SMOOTH);
+
+            //Copy the scaled image into actual image displayed by the MappedImage
+            image = new BufferedImage(imageLength, imageHeight, originalImage.getType());
+            Graphics2D bufferGraphics = image.createGraphics();
+            bufferGraphics.drawImage(scaledImage, 0, 0, null);
+        } catch (Exception e) {
             image = null;
-            return;
         }
 
-        Image scaledImage = originalImage.getScaledInstance(imageLength, imageHeight, Image.SCALE_SMOOTH);
 
-        image = new BufferedImage(imageLength, imageHeight, originalImage.getType());
-
-        Graphics2D bufferGraphics = image.createGraphics();
-        bufferGraphics.drawImage(scaledImage, 0, 0, null);
     }
 
+    //Get control points list
     public ControlPoint[][] getMappingPoints() {
         return mappingPoints;
     }
 
+    //Change the control points of the MappedImage
     public void setMappingPoints(ControlPoint[][] mappingPoints) {
         this.mappingPoints = mappingPoints;
     }
 
+    //Associate a MappedImage with this one
     public void setAssociatedImage(MappedImage image) {
         if(this.associatedImages.contains(image) || image.associatedImages.contains(this))
             return;
@@ -189,19 +209,27 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
         image.associatedImages.add(this);
     }
 
+    //Get the grid size of this MappedImage
     public int getGridSize() {
         return gridSize;
     }
 
+    //Overwritten methods
+
     @Override
     public void paint(Graphics graphics) {
+        //Call the orignal paint method for JPanel
         super.paint(graphics);
-        Graphics2D g2d = (Graphics2D) graphics;
-        g2d.drawImage(image, 0, 0, null);
-        for (int row = 0; row < mappingPoints.length; row++)
-            for (int column = 0; column < mappingPoints[row].length; column++) {
-                ControlPoint controlPoint = mappingPoints[row][column];
 
+        //Get the graphics context of this MappedImage
+        Graphics2D g2d = (Graphics2D) graphics;
+
+        //Draw the actual image onto the MappedImage
+        g2d.drawImage(image, 0, 0, null);
+
+        //Draw the lines between adjacent control points
+        for (ControlPoint[] mappingPoint : mappingPoints)
+            for (ControlPoint controlPoint : mappingPoint) {
                 for (ControlPoint adjacentControlPoint : controlPoint.getAdjacentControlPoints()) {
                     g2d.setColor(Color.BLACK);
                     g2d.drawLine(controlPoint.x, controlPoint.y,
@@ -209,9 +237,9 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
                 }
             }
 
-        for (int row = 0; row < mappingPoints.length; row++)
-            for (int column = 0; column < mappingPoints[row].length; column++) {
-                ControlPoint controlPoint = mappingPoints[row][column];
+        //Draw the actual dot of the control image.
+        for (ControlPoint[] mappingPoint : mappingPoints)
+            for (ControlPoint controlPoint : mappingPoint) {
                 if (controlPoint.isVisible) {
                     if (controlPoint.isSelected)
                         g2d.setColor(Color.RED);
@@ -227,9 +255,6 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
 
     @Override
     public Dimension getPreferredSize() {
-        if (image != null)
-            return new Dimension(image.getWidth(), image.getHeight());
-        else
             return new Dimension(this.imageLength, this.imageHeight);
     }
 
@@ -239,10 +264,19 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
 
     @Override
     public void mousePressed(MouseEvent mouseEvent) {
+        //get the mouse press location
         Point mouseEventPoint = mouseEvent.getPoint();
+
+        //Only select a new point if is not already selected
         if(clickedPoint == null)
+
+            //Check every control point
             for (int row = 0; row < mappingPoints.length; row++)
                 for (int column = 0; column < mappingPoints[row].length; column++) {
+
+                    //If the control point is close enough to the mouse press location and
+                    //is visible, make it the clicked control point and set both it and all
+                    //associated points in other images as selected
                     ControlPoint controlPoint = mappingPoints[row][column];
                     if (isClose(mouseEventPoint, controlPoint) && controlPoint.isVisible) {
                         clickedPoint = new Point(row, column);
@@ -251,19 +285,27 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
                             mappedImage.mappingPoints[clickedPoint.x][clickedPoint.y].isSelected = true;
                             mappedImage.repaint();
                         }
+                        return;
                     }
                 }
     }
 
     @Override
     public void mouseReleased(MouseEvent mouseEvent) {
+        //Only do this if a point is selected
         if(clickedPoint != null) {
+
+            //Set the clicked control point and all associated control points in other
+            //images as not selected
             mappingPoints[clickedPoint.x][clickedPoint.y].isSelected = false;
             for(MappedImage mappedImage : associatedImages) {
                 mappedImage.mappingPoints[clickedPoint.x][clickedPoint.y].isSelected = false;
                 mappedImage.repaint();
             }
+
+            //Remove the control point as the clicked point
             clickedPoint = null;
+
             repaint();
         }
     }
@@ -278,7 +320,10 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
 
     @Override
     public void mouseDragged(MouseEvent mouseEvent) {
+        //Only do this if a control point has been selected
         if(clickedPoint != null) {
+
+            //Update the clicked control point with the current mouse position
             mappingPoints[clickedPoint.x][clickedPoint.y].x = mouseEvent.getX();
             mappingPoints[clickedPoint.x][clickedPoint.y].y = mouseEvent.getY();
         }
@@ -288,21 +333,32 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
     @Override
     public void mouseMoved(MouseEvent mouseEvent) {}
 
+    //Private helper methods
+
+    //Determine if a point is "close enough" to a point by finding the distance between it and the point
+    //and comparing it to the size of the point
     private boolean isClose(Point location, ControlPoint controlPoint) {
         return Math.sqrt((location.x - controlPoint.x) * (location.x - controlPoint.x)
                 + (location.y - controlPoint.y) * (location.y - controlPoint.y)) <= pointSize/2;
     }
 
+    //Connect the control points in a particular fashion
     private void formGrid() {
 
+        //For every point in the control point list
         for(int row = 0; row < mappingPoints.length; row++) {
             for(int column = 0; column < mappingPoints[row].length; column++) {
+
+                //Calculate for the column next to and the row before the current point
                 int right = column + 1;
                 int up = row - 1;
 
+                //Determine if the prior connection values would be in range
                 boolean rightConnects = right < mappingPoints[row].length;
                 boolean upConnects = up >= 0;
 
+                //If there is a point that is to the right of and/or one row before the current point,
+                //set them adjacent to each other
                 if(rightConnects)
                     mappingPoints[row][column].addAdjacentPoint(mappingPoints[row][right]);
                 if(upConnects)

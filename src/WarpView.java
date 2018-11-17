@@ -1,14 +1,19 @@
-//package PACKAGE_NAME;
-//Keeping on working
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.util.ArrayList;
 
+/* Warpview
+ *
+ * This Class acts as a GUI for allowing a user to create a warp of two images
+ * using the MappedImage class.
+ *
+ * Authors:
+ * Tyler Burkett
+ * John Dickens
+ */
 public class WarpView extends JFrame {
 
     //Jpanel to hold buttons, and images
@@ -57,8 +62,9 @@ public class WarpView extends JFrame {
         seconds = 2;
 
         //constructor to load mapped image
-        orig_img = new MappedImage( 10, 450,600, 8);
-        dest_img = new MappedImage( 10, 450, 600, 8);
+        orig_img = new MappedImage( 10, 450,600, 10);
+        dest_img = new MappedImage( 10, 450, 600, 10);
+        orig_img.setAssociatedImage(dest_img);
 
         initialize_GUI();
 
@@ -131,18 +137,14 @@ public class WarpView extends JFrame {
             File file = file_choose.getSelectedFile();
 
             //loads left image
-            if(load_left_flag == true) {
-                try {
-                    orig_img.getImage(file.getAbsolutePath());
-                } catch (Exception e) {e.printStackTrace();}
+            if(load_left_flag) {
+                orig_img.getImage(file.getAbsolutePath());
                 orig_img.setVisible(true);
                 repaint();
             }
             else//loads right image
             {
-                try {
-                    dest_img.getImage((file.getAbsolutePath()));
-                } catch (Exception e) {e.printStackTrace();}
+                dest_img.getImage((file.getAbsolutePath()));
                 dest_img.setVisible(true);
                 repaint();
             }
@@ -214,14 +216,16 @@ public class WarpView extends JFrame {
             //need to add something in here to make sure the two have default values
             try {
             seconds = Integer.parseInt(seconds_input.getText());
+            if(seconds < 0) throw new IllegalArgumentException();
             } catch (Exception x) {
-                x.printStackTrace();
+                seconds = 2;
             }
 
             try {
-            frames_sec = Integer.parseInt(frames_sec_input.getText());
+                frames_sec = Integer.parseInt(frames_sec_input.getText());
+                if(frames_sec < 0) throw new IllegalArgumentException();
             } catch (Exception x) {
-                x.printStackTrace();
+                frames_sec = 10;
             }
 
             settings_panel.dispatchEvent(new WindowEvent(settings_panel, WindowEvent.WINDOW_CLOSING));
@@ -265,18 +269,15 @@ public class WarpView extends JFrame {
             timer_counter = 0;
 
             //timer actives every frame
-            morph_timer = new Timer((1000*seconds)/frames_sec, new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent actionEvent) {
-                    morph_old_to_new();
-                    morphing_img.repaint();
+            morph_timer = new Timer((1000*seconds)/frames_sec, actionEvent -> {
+                morph_old_to_new();
+                morphing_img.repaint();
 
-                    //counter so that morph_timer will stop after going through all the frames
-                    timer_counter++;
-                    if(timer_counter == (seconds*frames_sec)-1) {
-                        morph_timer.stop();
-                        finalize_morph();
-                    }
+                //counter so that morph_timer will stop after going through all the frames
+                timer_counter++;
+                if(timer_counter == (seconds*frames_sec)-1) {
+                    morph_timer.stop();
+                    finalize_morph();
                 }
             });
 
@@ -284,7 +285,7 @@ public class WarpView extends JFrame {
 
             preview_frame.add(morphing_img);
 
-            preview_frame.setSize(orig_img.getWidth()+30,orig_img.getHeight()+20);
+            preview_frame.setSize(orig_img.getWidth()+40,orig_img.getHeight()+40);
             preview_frame.setVisible(true);
         }
     }

@@ -255,12 +255,13 @@ public class WarpView extends JFrame {
     class preview_morph implements ActionListener{
         public void actionPerformed(ActionEvent e){
 
+            morphing_img = new MappedImage(orig_img,true);
+
             //finds distances in between points
             find_increments();
 
             preview_frame = new JFrame("Preview Morph");
 
-            morphing_img = new MappedImage(orig_img,true);
             timer_counter = 0;
 
             //timer actives every frame
@@ -301,9 +302,9 @@ public class WarpView extends JFrame {
         //morph points to feed back into morph)ima
         morph_points = morphing_img.getMappingPoints();
 
-        for(int i = 0; i<morphing_img.getHeight(); i++)
+        for(int i = 0; i<morphing_img.getGridSize(); i++)
         {
-            for(int j = 0; j < morphing_img.getWidth(); j++)
+            for(int j = 0; j < morphing_img.getGridSize(); j++)
             {
                 morph_points[i][j].setLocation(morph_points[i][j].getX() +inc_x_array[i][j],morph_points[i][j].getY()+inc_y_array[i][j]);
                 morphing_img.setMappingPoints(morph_points);
@@ -314,21 +315,22 @@ public class WarpView extends JFrame {
 
     public void find_increments()
     {
-
         //gets grid of increments
         int num_increments = seconds*frames_sec;
 
         orig_points = orig_img.getMappingPoints();
         end_points = dest_img.getMappingPoints();
 
+        inc_x_array = new double[morphing_img.getGridSize()][morphing_img.getGridSize()];
+        inc_y_array = new double[morphing_img.getGridSize()][morphing_img.getGridSize()];
+
         //for loop to get increments
-        for(int i = 0; i<morphing_img.getMappingPoints().length; i++)
+        for(int i = 0; i<morphing_img.getGridSize(); i++)
         {
-            for(int j = 0; j < morphing_img.getMappingPoints().length; j++)
+            for(int j = 0; j < morphing_img.getGridSize(); j++)
             {
                 inc_x_array[i][j] =  (orig_points[i][j].getX() - end_points[i][j].getX())/num_increments;
                 inc_y_array[i][j] =  (orig_points[i][j].getY() - end_points[i][j].getY())/num_increments;
-
             }
         }
     }

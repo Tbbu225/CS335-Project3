@@ -52,9 +52,9 @@ public class WarpView extends JFrame {
     //constructor
     public WarpView()
     {
-        //set initial values to 5
-        frames_sec = 5;
-        seconds = 5;
+        //set initial values
+        frames_sec = 10;
+        seconds = 2;
 
         //constructor to load mapped image
         orig_img = new MappedImage( 10, 450,600, 8);
@@ -273,7 +273,7 @@ public class WarpView extends JFrame {
 
                     //counter so that morph_timer will stop after going through all the frames
                     timer_counter++;
-                    if(timer_counter == seconds*frames_sec)
+                    if(timer_counter == (seconds*frames_sec)-1)
                         morph_timer.stop();
                 }
             });

@@ -189,6 +189,10 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
         image.associatedImages.add(this);
     }
 
+    public int getGridSize() {
+        return gridSize;
+    }
+
     @Override
     public void paint(Graphics graphics) {
         super.paint(graphics);

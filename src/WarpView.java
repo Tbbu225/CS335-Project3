@@ -269,7 +269,7 @@ public class WarpView extends JFrame {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
                     morph_old_to_new();
-                    repaint();
+                    morphing_img.repaint();
 
                     //counter so that morph_timer will stop after going through all the frames
                     timer_counter++;
@@ -329,8 +329,8 @@ public class WarpView extends JFrame {
         {
             for(int j = 0; j < morphing_img.getGridSize(); j++)
             {
-                inc_x_array[i][j] =  (orig_points[i][j].getX() - end_points[i][j].getX())/num_increments;
-                inc_y_array[i][j] =  (orig_points[i][j].getY() - end_points[i][j].getY())/num_increments;
+                inc_x_array[i][j] =  (end_points[i][j].getX() - orig_points[i][j].getX())/num_increments;
+                inc_y_array[i][j] =  (end_points[i][j].getY() - orig_points[i][j].getY())/num_increments;
             }
         }
     }

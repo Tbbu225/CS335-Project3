@@ -27,7 +27,7 @@ import java.util.Map;
 public class WarpView extends JFrame {
 
     //Jpanel to hold buttons, and images
-    private JPanel button_panel, image_panel;
+    private JPanel button_panel, image_panel, morph_panel;
 
     //JFrame for pop up menu on settings, then one for preview morph
     private JFrame settings_panel, preview_frame, morph_frame;
@@ -51,7 +51,7 @@ public class WarpView extends JFrame {
     //flag for which image to load
     private Boolean load_left_flag;
 
-    private Container c;
+    private Container c, d;
 
     //mapped image objects
     private MappedImage orig_img, dest_img, morphing_img;
@@ -186,6 +186,19 @@ public class WarpView extends JFrame {
             //frames
             //save control point
             //JFileChooser chooser = new JFileChooser();
+
+
+                        JFileChooser chooser = new JFileChooser();
+            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            chooser.setAcceptAllFileFilterUsed(false);
+            chooser.setCurrentDirectory(new java.io.File("."));
+
+            if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                File output_dir = chooser.getCurrentDirectory();
+            }
+            else {  return;
+            }
+
             
             for(int i = 0; i < frames.size(); i++)
             {
@@ -274,7 +287,6 @@ public class WarpView extends JFrame {
             brightness_input_right.setValue(10);
 
             settings_panel.add(brightness_input_right);
-
 
             settings_timer = new Timer(10, actionEvent -> {
                 brightness_label_left.setText("  Brightness(left image):  " + brightness_input_left.getValue());
@@ -420,19 +432,28 @@ public class WarpView extends JFrame {
                 return;
             }
             morph_frame = new JFrame("Morph");
-
+            morph_panel = new JPanel();
+//            morph_frame.add(morph_panel);
             make_betweens();
 
             timer_counter = 0;
 
+            d = morph_frame.getContentPane();
+            d.add(morph_panel);
+            morph(dest_img);
+
+
             //timer actives every frame
             morph_timer = new Timer((1000*seconds)/frames_sec, actionEvent -> {
 
-                morph(dest_img);
-                //morph_image();
+                if(timer_counter != 0)
+                {
+                    morph_panel.remove(frames.get(timer_counter));
+                }
 
-                //blend
-                //morph triangles
+                morph_panel.add(frames.get(timer_counter+1));
+                morph_frame.repaint();
+
 
                 //counter so that preview_timer will stop after going through all the frames
                 timer_counter++;
@@ -442,12 +463,14 @@ public class WarpView extends JFrame {
                 }
             });
 
+            morph_frame.setSize(800,600/*orig_img.getHeight()+200,orig_img.getWidth()+200*/);
+            morph_frame.setVisible(true);
+
+
             morph_timer.start();
 
-            morph_frame.add(morphing_img);
+//            morph_frame.add(morphing_img);
 
-            morph_frame.setSize(orig_img.getHeight()+40,orig_img.getWidth()+40);
-            morph_frame.setVisible(true);
         }
     }
 

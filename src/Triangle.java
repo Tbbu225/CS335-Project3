@@ -1,5 +1,3 @@
-//As provided by Dr. Seales.
-
 import java.awt.*;
 import java.awt.geom.*;
 
@@ -8,7 +6,7 @@ public class Triangle
 
     private Point2D.Double tri[];
 
-    public Triangle(double x1, double y1, double x2, double y2, double x3, double y3)
+    public Triangle(int x1, int y1, int x2, int y2, int x3, int y3)
     {
         tri = new Point2D.Double[3];
         tri[0] = new Point2D.Double((double)x1, (double)y1);
@@ -80,7 +78,6 @@ public class Triangle
         Xcoords[2] = tri[2].getX();
         return Xcoords;
     }
-
 
     public double[] getYCoords()
     {

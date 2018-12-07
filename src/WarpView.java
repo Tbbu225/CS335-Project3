@@ -43,7 +43,7 @@ public class WarpView extends JFrame {
     private JLabel frames_sec_label, seconds_label, grid_height_label, grid_length_label, brightness_label_left, brightness_label_right, frame_length_label, frame_height_label;
     private TextField frames_sec_input, seconds_input, frame_length_input, frame_height_input;
     private JSlider grid_height_input, grid_length_input, brightness_input_left, brightness_input_right;
-    private int frames_sec, seconds;
+    private int frames_sec, seconds, left_bright, right_bright;
 
     //filechooser to pick files
     private JFileChooser file_choose;
@@ -76,6 +76,8 @@ public class WarpView extends JFrame {
         //set initial values
         frames_sec = 10;
         seconds = 2;
+        left_bright = 10;
+        right_bright = 10;
 
         //constructor to load mapped image
         orig_img = new MappedImage( 10, 480,318, 10);
@@ -275,7 +277,7 @@ public class WarpView extends JFrame {
             brightness_input_left = new JSlider();
             brightness_input_left.setMinimum(1); //values will be divided by 10 when passed into mapped images
             brightness_input_left.setMaximum(20);
-            brightness_input_left.setValue(10);
+            brightness_input_left.setValue(left_bright);
 
             settings_panel.add(brightness_input_left);
 
@@ -284,7 +286,7 @@ public class WarpView extends JFrame {
             brightness_input_right = new JSlider();
             brightness_input_right.setMinimum(1); //values will be divided by 10 when passed into mapped images
             brightness_input_right.setMaximum(20);
-            brightness_input_right.setValue(10);
+            brightness_input_right.setValue(right_bright);
 
             settings_panel.add(brightness_input_right);
 
@@ -334,10 +336,14 @@ public class WarpView extends JFrame {
             dest_img.setVisibleGridDimensions(grid_length_input.getValue(), orig_img.getGridHeight()-2);
 
             //changes brightness with error checking
-            if(orig_img.getBufferedImage() != null)
-                orig_img.brighten(((float)brightness_input_left.getValue()) / 10);
-            if(dest_img.getBufferedImage() != null)
-                dest_img.brighten(((float)brightness_input_right.getValue()) / 10);
+            if(orig_img.getBufferedImage() != null) {
+                orig_img.brighten(((float) brightness_input_left.getValue()) / 10);
+                left_bright = brightness_input_left.getValue();
+            }
+            if(dest_img.getBufferedImage() != null) {
+                dest_img.brighten(((float) brightness_input_right.getValue()) / 10);
+                right_bright = brightness_input_right.getValue();
+            }
 
             try {
                 orig_img.setFrameDimensions(Integer.parseInt(frame_length_input.getText()), Integer.parseInt(frame_height_input.getText()));

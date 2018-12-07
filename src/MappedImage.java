@@ -104,11 +104,6 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
         super();
         setBackground(Color.WHITE);
 
-        //Set image to null
-        this.image = null;
-        this.initialImage = null;
-        this.path = null;
-
         //Copy members from provided MappedImage
         this.gridHeight = mappedImage.gridHeight;
         this.gridLength = mappedImage.gridLength;
@@ -123,19 +118,24 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
         this.associatedImages = new ArrayList<>(mappedImage.associatedImages.size());
         this.associatedImages.addAll(mappedImage.associatedImages);
 
+        //Create new buffered images
+        this.image = new BufferedImage(mappedImage.image.getWidth(),
+                mappedImage.image.getHeight(),
+                mappedImage.image.getType());
+        this.initialImage = new BufferedImage(mappedImage.image.getWidth(),
+                mappedImage.image.getHeight(),
+                mappedImage.image.getType());
+
         //If the image is wanted to be copied as well,
         //Take the original image from the provided MappedImage and
         //Draw it onto a new image in this one
         if(keepImage && mappedImage.image != null) {
             this.path = mappedImage.path;
-            this.image = new BufferedImage(mappedImage.image.getWidth(),
-                    mappedImage.image.getHeight(),
-                    mappedImage.image.getType());
-            this.initialImage = new BufferedImage(mappedImage.image.getWidth(),
-                    mappedImage.image.getHeight(),
-                    mappedImage.image.getType());
             this.image.getGraphics().drawImage(mappedImage.image, 0, 0, null);
             this.initialImage.getGraphics().drawImage(mappedImage.image, 0, 0, null);
+        }
+        else {
+            this.path = null;
         }
 
         //Allocate list of control points
@@ -203,8 +203,8 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
 
         int section = 0;
 
-        for (int row = 0; row < gridLength; row++) {
-            for (int column = 0; row < gridHeight; row++) {
+        for (int row = 0; row < gridHeight; row++) {
+            for (int column = 0; column < gridLength; column++) {
                 int up = row - 1;
                 int down = row + 1;
                 int right = column + 1;
@@ -214,22 +214,20 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
                 boolean downConnects = down < mappingPoints.length;
                 boolean rightConnects = right < mappingPoints[row].length;
 
-                if (row % 2 == 0) {
-                    if (rightConnects && downConnects) {
-                        pointTriangles[section][1] = mappingPoints[row][column];
-                        pointTriangles[section][2] = mappingPoints[row][right];
-                        pointTriangles[section][3] = mappingPoints[down][column];
-                        section++;
-                    }
+                if (rightConnects && downConnects) {
+                    pointTriangles[section][0] = mappingPoints[row][column];
+                    pointTriangles[section][1] = mappingPoints[row][right];
+                    pointTriangles[section][2] = mappingPoints[down][column];
+                    section++;
                 }
-                else {
-                    if(rightConnects && upConnects) {
-                        pointTriangles[section][1] = mappingPoints[row][column];
-                        pointTriangles[section][2] = mappingPoints[row][right];
-                        pointTriangles[section][3] = mappingPoints[up][right];
-                        section++;
-                    }
+
+                if(rightConnects && upConnects) {
+                    pointTriangles[section][0] = mappingPoints[row][column];
+                    pointTriangles[section][1] = mappingPoints[row][right];
+                    pointTriangles[section][2] = mappingPoints[up][right];
+                    section++;
                 }
+
             }
         }
 
@@ -266,7 +264,7 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
 
     //Get the grid height of this MappedImage
     public int getGridHeight() { return gridHeight; }
-    
+
     //Associate a MappedImage with this one
     public void setAssociatedImage(MappedImage image) {
         if(this.associatedImages.contains(image) || image.associatedImages.contains(this))

@@ -78,8 +78,8 @@ public class WarpView extends JFrame {
         seconds = 2;
 
         //constructor to load mapped image
-        orig_img = new MappedImage( 10, 450,600, 10);
-        dest_img = new MappedImage( 10, 450, 600, 10);
+        orig_img = new MappedImage( 10, 480,318, 10);
+        dest_img = new MappedImage( 10, 480, 318, 10);
         orig_img.setAssociatedImage(dest_img);
 
         src_triangles = new ArrayList<>();
@@ -444,7 +444,7 @@ public class WarpView extends JFrame {
 
             morph_timer.start();
 
-//            morph_frame.add(morphing_img);
+            morph_frame.add(morphing_img);
 
             morph_frame.setSize(orig_img.getHeight()+40,orig_img.getWidth()+40);
             morph_frame.setVisible(true);
@@ -453,7 +453,7 @@ public class WarpView extends JFrame {
 
     public void morph(MappedImage dest_img)
     {
-        for(int i = 1; i < frames.size()-1; i++)
+        for(int i = 1; i < frames.size()-2; i++)
         {
                MorphTools.warpTriangle(orig_img.getBufferedImage(), dest_img.getBufferedImage(), src_triangles.get(i), dest_triangles.get(i), null, null);
 
@@ -497,13 +497,13 @@ public class WarpView extends JFrame {
         orig_points = orig_img.getMappingPoints();
         end_points = dest_img.getMappingPoints();
 
-        inc_x_array = new double[morphing_img.getGridLength()][morphing_img.getGridHeight()];
-        inc_y_array = new double[morphing_img.getGridLength()][morphing_img.getGridHeight()];
+        inc_x_array = new double[dest_img.getGridLength()][dest_img.getGridHeight()];
+        inc_y_array = new double[dest_img.getGridLength()][dest_img.getGridHeight()];
 
         //for loop to get increments
-        for(int i = 0; i<morphing_img.getGridLength(); i++)
+        for(int i = 0; i<dest_img.getGridLength(); i++)
         {
-            for(int j = 0; j < morphing_img.getGridHeight(); j++)
+            for(int j = 0; j < dest_img.getGridHeight(); j++)
             {
                 inc_x_array[i][j] =  (end_points[i][j].getX() - orig_points[i][j].getX())/num_increments;
                 inc_y_array[i][j] =  (end_points[i][j].getY() - orig_points[i][j].getY())/num_increments;
@@ -537,8 +537,8 @@ public class WarpView extends JFrame {
         //makes a whole bunch of triangle objects from source
         for(int i = 0; i < src_tri.length; i++)
         {
-            src_triangles.add(new Triangle(src_tri[i][1].x,src_tri[i][1].y,src_tri[i][2].x,src_tri[i][2].y,src_tri[i][3].x,src_tri[i][3].y ));
-            dest_triangles.add(new Triangle(dest_tri[i][1].x,dest_tri[i][1].y,dest_tri[i][2].x,dest_tri[i][2].y,dest_tri[i][3].x,dest_tri[i][3].y ));
+            src_triangles.add(new Triangle(src_tri[i][0].x,src_tri[i][0].y,src_tri[i][1].x,src_tri[i][1].y,src_tri[i][2].x,src_tri[i][2].y ));
+            dest_triangles.add(new Triangle(dest_tri[i][0].x,dest_tri[i][0].y,dest_tri[i][1].x,dest_tri[i][1].y,dest_tri[i][2].x,dest_tri[i][2].y ));
         }
 
     }
@@ -559,8 +559,8 @@ public class WarpView extends JFrame {
             {
                 for(int j = 0; j < orig_img.getBufferedImage().getWidth(); j++)
                 {
-                    Color origRGB = new Color(orig_img.getBufferedImage().getRGB(i,j));
-                    Color destRGB = new Color(dest_img.getBufferedImage().getRGB(i,j));
+                    Color origRGB = new Color(orig_img.getBufferedImage().getRGB(j,i));
+                    Color destRGB = new Color(dest_img.getBufferedImage().getRGB(j,i));
 
                     int rdiff = destRGB.getRed() - origRGB.getRed();
                     int gdiff = destRGB.getGreen() - origRGB.getGreen();
@@ -575,22 +575,28 @@ public class WarpView extends JFrame {
             }
         }
 
-        BufferedImage temp = dest_img.getBufferedImage();
+        BufferedImage destImgBuffered = dest_img.getBufferedImage();
+        BufferedImage origImgBuffered = orig_img.getBufferedImage();
 
-        for (int j = 0; j < temp.getHeight(); j++)
+        for (int j = 0; j < destImgBuffered.getHeight(); j++)
         {
-            for (int k = 0; k < temp.getWidth(); k++)
+            for (int k = 0; k < destImgBuffered.getWidth(); k++)
             {
-                Color pixelColor = new Color(temp.getRGB(j,k));
+                Color pixelColor = new Color(origImgBuffered.getRGB(k,j));
 
                 int rnew = (int) Math.floor(pixelColor.getRed() + r_inc[j][k] * step + 0.5);
                 int gnew = (int) Math.floor(pixelColor.getGreen() + g_inc[j][k] * step + 0.5);
                 int bnew = (int) Math.floor(pixelColor.getBlue() + (int) b_inc[j][k] * step + 0.5);
                 int anew = (int) Math.floor(pixelColor.getAlpha() + (int) a_inc[j][k] * step + 0.5);
 
+                rnew = Math.max(0,Math.min(255,rnew));
+                gnew = Math.max(0,Math.max(255,gnew));
+                bnew = Math.max(0,Math.min(255,bnew));
+                anew = Math.max(0,Math.min(255,anew));
+
                 Color newPixelColor = new Color(rnew, gnew, bnew, anew);
 
-                temp.setRGB(j, k, newPixelColor.getRGB());
+                destImgBuffered.setRGB(k, j, newPixelColor.getRGB());
             }
         }
 
@@ -605,7 +611,7 @@ public class WarpView extends JFrame {
 
         frames.add(orig_img);
 
-        for (int i = 1; i < frames_sec * seconds - 2; i++ ) {
+        for (int i = 1; i < frames_sec * seconds - 1; i++ ) {
             MappedImage frame = new MappedImage(orig_img, false);
             frames.add(frame);
         }

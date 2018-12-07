@@ -1,4 +1,8 @@
+import javax.imageio.ImageIO;
+import javax.imageio.stream.FileImageOutputStream;
+import javax.imageio.stream.ImageOutputStream;
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
@@ -7,6 +11,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -29,7 +34,7 @@ public class WarpView extends JFrame {
 
     //views of menu
     private JMenuBar main_menu;
-    private JMenuItem file_menu_item, settings_menu_item, quit_menu_item;
+    private JMenuItem morph_save, settings_menu_item, quit_menu_item;
 
     //buttons for settings menu, then buttons for main control
     private JButton settings_okay, settings_cancel, left_image_button, right_image_button, preview_morph_button, morph_button;
@@ -98,9 +103,9 @@ public class WarpView extends JFrame {
         //setting up main menu
         main_menu = new JMenuBar();
 
-        file_menu_item = new JMenuItem("File");
-//        main_menu.add(file_menu_item);  //Reserved for when we need it
-        file_menu_item.addActionListener(new file_menu());
+        morph_save = new JMenuItem("Morph Save");
+        main_menu.add(morph_save);  //Reserved for when we need it
+        morph_save.addActionListener(new morph_save());
 
         settings_menu_item = new JMenuItem("Settings");
         main_menu.add(settings_menu_item);
@@ -131,7 +136,7 @@ public class WarpView extends JFrame {
 
         //image panel- holds images
         image_panel = new JPanel();
-        image_panel.setLayout(new GridLayout(1,2,10,10));
+        image_panel.setLayout(new FlowLayout());
 
         image_panel.add(orig_img);
         image_panel.add(dest_img);
@@ -144,7 +149,7 @@ public class WarpView extends JFrame {
         c.add(button_panel, BorderLayout.SOUTH);
 
         setTitle("Control Point");
-        setSize(900, 700);
+        setSize(1100, 800);
         setVisible(true);
     }
 
@@ -175,10 +180,22 @@ public class WarpView extends JFrame {
         }
     }
 
-
-    class file_menu implements ActionListener {
+    class morph_save implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            //Reserved for saving/loading morphs if/when we reach that point in the project.
+
+            //frames
+            //save control point
+            //JFileChooser chooser = new JFileChooser();
+            
+            for(int i = 0; i < frames.size(); i++)
+            {
+                File output = new File("output"+i);
+                try {
+                    ImageIO.write(frames.get(i).getBufferedImage(), "jpg", output);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
         }
     }
 
@@ -268,21 +285,6 @@ public class WarpView extends JFrame {
             );
 
             settings_timer.start();
-
-            /*
-            preview_timer = new Timer((1000*seconds)/frames_sec, actionEvent -> {
-                preview_old_to_new();
-                morphing_img.repaint();
-
-                //counter so that preview_timer will stop after going through all the frames
-                timer_counter++;
-                if(timer_counter == (seconds*frames_sec)-1) {
-                    preview_timer.stop();
-                    finalize_morph();
-                }
-            });
-             */
-
 
             //confirms text field entries
             settings_okay = new JButton("OK");
@@ -413,6 +415,10 @@ public class WarpView extends JFrame {
     //actually morphs image
     class image_morph implements ActionListener{
         public void actionPerformed(ActionEvent e){
+            if(orig_img.getBufferedImage() == null || dest_img.getBufferedImage() == null)
+            {
+                return;
+            }
             morph_frame = new JFrame("Morph");
 
             make_betweens();
@@ -425,7 +431,7 @@ public class WarpView extends JFrame {
                 morph(dest_img);
                 //morph_image();
 
-                //              blend
+                //blend
                 //morph triangles
 
                 //counter so that preview_timer will stop after going through all the frames

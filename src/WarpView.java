@@ -54,7 +54,7 @@ public class WarpView extends JFrame {
 
     private ControlPoint[][] orig_points, end_points, morph_points;
 
-    private Triangle[][] orig_tri_odd_rows, orig_tri_even_rows, end_tri_odd_rows, end_tri_even_rows;
+    private Triangle[][] orig_tri_odd_rows, orig_tri_even_rows, end_tri_odd_rows, end_tri_even_rows, morph_tri_odd_rows, morph_tri_even_rows;
 
 //    private tween_tri_arr;
 
@@ -274,7 +274,7 @@ public class WarpView extends JFrame {
 
             //timer actives every frame
             preview_timer = new Timer((1000*seconds)/frames_sec, actionEvent -> {
-                morph_old_to_new();
+                preview_old_to_new();
                 morphing_img.repaint();
 
                 //counter so that preview_timer will stop after going through all the frames
@@ -303,10 +303,12 @@ public class WarpView extends JFrame {
 
             timer_counter = 0;
 
-
             //timer actives every frame
             morph_timer = new Timer((1000*seconds)/frames_sec, actionEvent -> {
-//              blend
+
+                morph_image();
+
+                //              blend
                 //morph triangles
 
                 //counter so that preview_timer will stop after going through all the frames
@@ -319,15 +321,51 @@ public class WarpView extends JFrame {
 
             morph_timer.start();
 
-//            preview_frame.add(morphing_img);
-
+//            morph_frame.add(morphing_img);
 
             morph_frame.setSize(orig_img.getHeight()+40,orig_img.getWidth()+40);
             morph_frame.setVisible(true);
         }
     }
 
-    public void morph_old_to_new()
+    public void morph_image()
+    {
+        morph_tri_even_rows = orig_tri_even_rows;
+        morph_tri_odd_rows = orig_tri_odd_rows;
+
+        MorphTools morphy = new MorphTools();
+        Triangle temp_triangle_even = new Triangle(0,0,1,1,2,2);
+        Triangle temp_triangle_odd = new Triangle(0,0,1,1,2,2);
+
+
+
+        for(int i = 0; i<morphing_img.getGridSize()-1; i++)
+        {
+            for(int j = 0; j < morphing_img.getGridSize()-1; j++)
+            {
+                temp_triangle_even.setX(0, morph_tri_even_rows[i][j].getX(0)+inc_x_array[i][j]);
+                temp_triangle_even.setX(1, morph_tri_even_rows[i][j].getX(1)+inc_x_array[i][j]);
+                temp_triangle_even.setX(2, morph_tri_even_rows[i][j].getX(2)+inc_x_array[i][j]);
+
+                temp_triangle_even.setY(0, morph_tri_even_rows[i][j].getY(0)+inc_y_array[i][j]);
+                temp_triangle_even.setY(1, morph_tri_even_rows[i][j].getY(1)+inc_y_array[i][j]);
+                temp_triangle_even.setY(2, morph_tri_even_rows[i][j].getY(2)+inc_y_array[i][j]);
+
+                temp_triangle_odd.setX(0, morph_tri_odd_rows[i][j].getX(0)+inc_x_array[i][j]);
+                temp_triangle_odd.setX(1, morph_tri_odd_rows[i][j].getX(1)+inc_x_array[i][j]);
+                temp_triangle_odd.setX(2, morph_tri_odd_rows[i][j].getX(2)+inc_x_array[i][j]);
+
+                temp_triangle_odd.setY(0, morph_tri_odd_rows[i][j].getY(0)+inc_y_array[i][j]);
+                temp_triangle_odd.setY(1, morph_tri_odd_rows[i][j].getY(1)+inc_y_array[i][j]);
+                temp_triangle_odd.setY(2, morph_tri_odd_rows[i][j].getY(2)+inc_y_array[i][j]);
+
+//                morphy.warpTriangle(orig_img, orig_img, morph_tri_even_rows[i][j],temp_triangle_even);
+            }
+        }
+
+    }
+
+    public void preview_old_to_new()
     {
         //morph points to feed back into morph)ima
         morph_points = morphing_img.getMappingPoints();
@@ -401,8 +439,6 @@ public class WarpView extends JFrame {
 
             }
         }
-
-
     }
 
 }

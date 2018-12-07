@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 
 /* Warpview
@@ -29,10 +30,11 @@ public class WarpView extends JFrame {
     //buttons for settings menu, then buttons for main control
     private JButton settings_okay, settings_cancel, left_image_button, right_image_button, preview_morph_button, morph_button;
 
-    //labels and inputs for frames and seconds
-    private JLabel frames_sec_label, seconds_label;
+    //labels and inputs for frames and seconds and grid resolution
+    private JLabel frames_sec_label, seconds_label, grid_height_label, grid_length_label;
     private TextField frames_sec_input, seconds_input;
-    private int frames_sec, seconds;
+    private JSlider grid_height_input, grid_length_input;
+    private int frames_sec, seconds, grid_height, grid_length;
 
     //filechooser to pick files
     private JFileChooser file_choose;
@@ -55,6 +57,8 @@ public class WarpView extends JFrame {
     private ControlPoint[][] orig_points, end_points, morph_points;
 
     private Triangle[][] orig_tri_odd_rows, orig_tri_even_rows, end_tri_odd_rows, end_tri_even_rows, morph_tri_odd_rows, morph_tri_even_rows;
+
+    private BufferedImage temp_buff_img;
 
 //    private tween_tri_arr;
 
@@ -109,7 +113,7 @@ public class WarpView extends JFrame {
         preview_morph_button.addActionListener(new preview_morph());
 
         morph_button = new JButton("Morph");
-//        button_panel.add(morph_button);
+        button_panel.add(morph_button);
         morph_button.addActionListener(new image_morph());
 
         //image panel- holds images
@@ -156,8 +160,6 @@ public class WarpView extends JFrame {
     }
 
 
-
-
     class file_menu implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             //Reserved for saving/loading morphs if/when we reach that point in the project.
@@ -169,11 +171,11 @@ public class WarpView extends JFrame {
         public void actionPerformed(ActionEvent e){
 
             //Jframe to hold it
-            settings_panel = new JFrame("Settings");
-            settings_panel.setLayout(new GridLayout(3,2,40,40));
+            settings_panel = new JFrame("  Settings");
+            settings_panel.setLayout(new GridLayout(5,2,30,40));
 
             //labels for button
-            frames_sec_label = new JLabel("Frames per Second");
+            frames_sec_label = new JLabel("  Frames per Second");
             settings_panel.add(frames_sec_label);
 
             //text field to hold how many frames per second
@@ -181,13 +183,23 @@ public class WarpView extends JFrame {
             settings_panel.add(frames_sec_input);
             frames_sec_input.addActionListener(this);
 
-            seconds_label = new JLabel("Seconds per morph");
+            seconds_label = new JLabel("  Seconds per morph");
             settings_panel.add(seconds_label);
 
             //text field to hold how many seconds per morph
             seconds_input = new TextField(10);
             settings_panel.add(seconds_input);
             seconds_input.addActionListener(this);
+
+
+            grid_height_label = new JLabel( "  Grid Height");
+            settings_panel.add(grid_height_label);
+
+            grid_height_input = new TextField(10);
+            settings_panel.add(grid_height_input);
+            grid_height_input.addActionListener(this);
+
+
 
             //confirms text field entries
             settings_okay = new JButton("OK");
@@ -338,10 +350,9 @@ public class WarpView extends JFrame {
         Triangle temp_triangle_odd = new Triangle(0,0,1,1,2,2);
 
 
-
-        for(int i = 0; i<morphing_img.getGridSize()-1; i++)
+        for(int i = 0; i<morphing_img.getGridLength()-1; i++)
         {
-            for(int j = 0; j < morphing_img.getGridSize()-1; j++)
+            for(int j = 0; j < morphing_img.getGridHeight()-1; j++)
             {
                 temp_triangle_even.setX(0, morph_tri_even_rows[i][j].getX(0)+inc_x_array[i][j]);
                 temp_triangle_even.setX(1, morph_tri_even_rows[i][j].getX(1)+inc_x_array[i][j]);
@@ -359,7 +370,9 @@ public class WarpView extends JFrame {
                 temp_triangle_odd.setY(1, morph_tri_odd_rows[i][j].getY(1)+inc_y_array[i][j]);
                 temp_triangle_odd.setY(2, morph_tri_odd_rows[i][j].getY(2)+inc_y_array[i][j]);
 
-//                morphy.warpTriangle(orig_img, orig_img, morph_tri_even_rows[i][j],temp_triangle_even);
+//                morphy.warpTriangle(orig_img.getBufferedImage(), orig_img.getBufferedImage(), morph_tri_even_rows[i][j],temp_triangle_even);
+//                morphy.warpTriangle(orig_img.getBufferedImage(), orig_img.getBufferedImage(), morph_tri_odd_rows[i][j],temp_triangle_odd);
+
             }
         }
 
@@ -370,9 +383,9 @@ public class WarpView extends JFrame {
         //morph points to feed back into morph)ima
         morph_points = morphing_img.getMappingPoints();
 
-        for(int i = 0; i<morphing_img.getGridSize(); i++)
+        for(int i = 0; i<morphing_img.getGridLength(); i++)
         {
-            for(int j = 0; j < morphing_img.getGridSize(); j++)
+            for(int j = 0; j < morphing_img.getGridHeight(); j++)
             {
                 morph_points[i][j].setLocation(orig_points[i][j].getX() +timer_counter*inc_x_array[i][j],orig_points[i][j].getY()+timer_counter*inc_y_array[i][j]);
                 morphing_img.setMappingPoints(morph_points);
@@ -383,9 +396,9 @@ public class WarpView extends JFrame {
 
     public void finalize_morph()
     {
-        for(int i = 0; i<morphing_img.getGridSize(); i++)
+        for(int i = 0; i<morphing_img.getGridLength(); i++)
         {
-            for(int j = 0; j < morphing_img.getGridSize(); j++)
+            for(int j = 0; j < morphing_img.getGridHeight(); j++)
             {
                 morph_points[i][j].setLocation(end_points[i][j].getX(),end_points[i][j].getY());
                 morphing_img.setMappingPoints(morph_points);
@@ -402,13 +415,13 @@ public class WarpView extends JFrame {
         orig_points = orig_img.getMappingPoints();
         end_points = dest_img.getMappingPoints();
 
-        inc_x_array = new double[morphing_img.getGridSize()][morphing_img.getGridSize()];
-        inc_y_array = new double[morphing_img.getGridSize()][morphing_img.getGridSize()];
+        inc_x_array = new double[morphing_img.getGridLength()][morphing_img.getGridHeight()];
+        inc_y_array = new double[morphing_img.getGridLength()][morphing_img.getGridHeight()];
 
         //for loop to get increments
-        for(int i = 0; i<morphing_img.getGridSize(); i++)
+        for(int i = 0; i<morphing_img.getGridLength(); i++)
         {
-            for(int j = 0; j < morphing_img.getGridSize(); j++)
+            for(int j = 0; j < morphing_img.getGridHeight(); j++)
             {
                 inc_x_array[i][j] =  (end_points[i][j].getX() - orig_points[i][j].getX())/num_increments;
                 inc_y_array[i][j] =  (end_points[i][j].getY() - orig_points[i][j].getY())/num_increments;
@@ -419,9 +432,9 @@ public class WarpView extends JFrame {
     public void make_triangles()
     {
         //makes a whole bunch of triangle objects from source
-        for(int i = 0; i < orig_img.getGridSize() -1; i++)
+        for(int i = 0; i < orig_img.getGridLength() -1; i++)
         {
-            for(int j = 0; j < orig_img.getGridSize()-1; j++)
+            for(int j = 0; j < orig_img.getGridHeight()-1; j++)
             {
                 orig_tri_odd_rows[i][j] = new Triangle(orig_points[i][j].getX(), orig_points[i][j].getY(), orig_points[i+1][j].getX(), orig_points[i+1][j].getY(), orig_points[i][j+1].getX(), orig_points[i][j+1].getY());
                 orig_tri_even_rows[i][j] = new Triangle(orig_points[i+1][j].getX(), orig_points[i+1][j].getY(), orig_points[i+1][j+1].getX(), orig_points[i+1][j+1].getY(), orig_points[i][j+1].getX(), orig_points[i][j+1].getY());
@@ -430,9 +443,9 @@ public class WarpView extends JFrame {
         }
 
         //makes a whole bunch of triangle objects from destination
-        for(int i = 0; i < dest_img.getGridSize() -1; i++)
+        for(int i = 0; i < dest_img.getGridLength() -1; i++)
         {
-            for(int j = 0; j < dest_img.getGridSize()-1; j++)
+            for(int j = 0; j < dest_img.getGridHeight()-1; j++)
             {
                 end_tri_odd_rows[i][j] = new Triangle(orig_points[i][j].getX(), orig_points[i][j].getY(), orig_points[i+1][j].getX(), orig_points[i+1][j].getY(), orig_points[i][j+1].getX(), orig_points[i][j+1].getY());
                 end_tri_even_rows[i][j] = new Triangle(orig_points[i+1][j].getX(), orig_points[i+1][j].getY(), orig_points[i+1][j+1].getX(), orig_points[i+1][j+1].getY(), orig_points[i][j+1].getX(), orig_points[i][j+1].getY());

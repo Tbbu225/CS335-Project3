@@ -481,7 +481,7 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
         return Math.sqrt((location.x - controlPoint.x) * (location.x - controlPoint.x)
                 + (location.y - controlPoint.y) * (location.y - controlPoint.y)) <= pointSize/2;
     }
-    
+
     //Connect the control points in a particular fashion
     private void formGrid() {
 

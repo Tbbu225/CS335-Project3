@@ -5,6 +5,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Map;
 
 /* Warpview
  *
@@ -56,9 +58,9 @@ public class WarpView extends JFrame {
 
     private ControlPoint[][] orig_points, end_points, morph_points;
 
-    private Triangle[][] orig_tri_odd_rows, orig_tri_even_rows, end_tri_odd_rows, end_tri_even_rows, morph_tri_odd_rows, morph_tri_even_rows;
+    private ArrayList<Triangle> src_triangles, dest_triangles;
 
-    private Triangle[] orig_triangle, end_triangle, morph_triangle;
+    private ArrayList<MappedImage> frames;
 
     private BufferedImage temp_buff_img;
 
@@ -73,6 +75,10 @@ public class WarpView extends JFrame {
         orig_img = new MappedImage( 10, 450,600, 10);
         dest_img = new MappedImage( 10, 450, 600, 10);
         orig_img.setAssociatedImage(dest_img);
+
+        src_triangles = new ArrayList<>();
+        dest_triangles = new ArrayList<>();
+        frames = new ArrayList<>();
 
         initialize_GUI();
 
@@ -308,7 +314,7 @@ public class WarpView extends JFrame {
         public void actionPerformed(ActionEvent e){
             morph_frame = new JFrame("Morph");
 
-            make_triangles(); // This creates two arrays of triangles, one for source image and destination image
+            //make_triangles(); // This creates two arrays of triangles, one for source image and destination image
             find_increments();//finds increments between the points
 
             timer_counter = 0;
@@ -316,7 +322,7 @@ public class WarpView extends JFrame {
             //timer actives every frame
             morph_timer = new Timer((1000*seconds)/frames_sec, actionEvent -> {
 
-                morph_image();
+                //morph_image();
 
                 //              blend
                 //morph triangles
@@ -338,41 +344,15 @@ public class WarpView extends JFrame {
         }
     }
 
-    public void morph_image()
+    public void morph_image(MappedImage src, MappedImage dest)
     {
-        morph_tri_even_rows = orig_tri_even_rows;
-        morph_tri_odd_rows = orig_tri_odd_rows;
 
         MorphTools morphy = new MorphTools();
 
-        Triangle temp_triangle_even = new Triangle(0,0,1,1,2,2);
-        Triangle temp_triangle_odd = new Triangle(0,0,1,1,2,2);
-
-
         for(int i = 0; i<morphing_img.getGridLength()-1; i++)
         {
-            for(int j = 0; j < morphing_img.getGridHeight()-1; j++)
-            {
-                temp_triangle_even.setX(0, morph_tri_even_rows[i][j].getX(0)+inc_x_array[i][j]);
-                temp_triangle_even.setX(1, morph_tri_even_rows[i][j].getX(1)+inc_x_array[i][j]);
-                temp_triangle_even.setX(2, morph_tri_even_rows[i][j].getX(2)+inc_x_array[i][j]);
+               morphy.warpTriangle(src.getBufferedImage(), dest.getBufferedImage(), src_triangles.get(i), dest_triangles.get(i), null, null);
 
-                temp_triangle_even.setY(0, morph_tri_even_rows[i][j].getY(0)+inc_y_array[i][j]);
-                temp_triangle_even.setY(1, morph_tri_even_rows[i][j].getY(1)+inc_y_array[i][j]);
-                temp_triangle_even.setY(2, morph_tri_even_rows[i][j].getY(2)+inc_y_array[i][j]);
-
-                temp_triangle_odd.setX(0, morph_tri_odd_rows[i][j].getX(0)+inc_x_array[i][j]);
-                temp_triangle_odd.setX(1, morph_tri_odd_rows[i][j].getX(1)+inc_x_array[i][j]);
-                temp_triangle_odd.setX(2, morph_tri_odd_rows[i][j].getX(2)+inc_x_array[i][j]);
-
-                temp_triangle_odd.setY(0, morph_tri_odd_rows[i][j].getY(0)+inc_y_array[i][j]);
-                temp_triangle_odd.setY(1, morph_tri_odd_rows[i][j].getY(1)+inc_y_array[i][j]);
-                temp_triangle_odd.setY(2, morph_tri_odd_rows[i][j].getY(2)+inc_y_array[i][j]);
-
-//                morphy.warpTriangle(orig_img.getBufferedImage(), orig_img.getBufferedImage(), morph_tri_even_rows[i][j],temp_triangle_even);
-//                morphy.warpTriangle(orig_img.getBufferedImage(), orig_img.getBufferedImage(), morph_tri_odd_rows[i][j],temp_triangle_odd);
-
-            }
         }
 
     }
@@ -427,29 +407,54 @@ public class WarpView extends JFrame {
         }
     }
 
-    public void make_triangles()
+    public void apply_increment(MappedImage src, MappedImage dest, int step)
     {
+        //morph points to feed back into morph)ima
+        ControlPoint[][] src_points = src.getMappingPoints();
+        ControlPoint[][] dest_points = dest.getMappingPoints();
+
+        for(int i = 0; i<src_points.length; i++)
+        {
+            for(int j = 0; j < src_points[i].length; j++)
+            {
+                dest_points[i][j].setLocation(src_points[i][j].getX() +step * inc_x_array[i][j],src_points[i][j].getY()+step * inc_y_array[i][j]);
+                dest.setMappingPoints(dest_points);
+            }
+        }
+
+    }
+
+    public void make_triangles(MappedImage src, MappedImage dest)
+    {
+        ControlPoint[][] src_tri = src.getTrianglePoints();
+        ControlPoint[][] dest_tri = dest.getTrianglePoints();
+
+        src_triangles.clear();
+        dest_triangles.clear();
+
         //makes a whole bunch of triangle objects from source
-        for(int i = 0; i < orig_img.getGridLength() -1; i++)
+        for(int i = 0; i < src_tri.length; i++)
         {
-            for(int j = 0; j < orig_img.getGridHeight()-1; j++)
-            {
-                orig_tri_odd_rows[i][j] = new Triangle(orig_points[i][j].getX(), orig_points[i][j].getY(), orig_points[i+1][j].getX(), orig_points[i+1][j].getY(), orig_points[i][j+1].getX(), orig_points[i][j+1].getY());
-                orig_tri_even_rows[i][j] = new Triangle(orig_points[i+1][j].getX(), orig_points[i+1][j].getY(), orig_points[i+1][j+1].getX(), orig_points[i+1][j+1].getY(), orig_points[i][j+1].getX(), orig_points[i][j+1].getY());
-
-            }
+            src_triangles.add(new Triangle(src_tri[i][1].x,src_tri[i][1].y,src_tri[i][2].x,src_tri[i][2].y,src_tri[i][3].x,src_tri[i][3].y ));
+            dest_triangles.add(new Triangle(dest_tri[i][1].x,dest_tri[i][1].y,dest_tri[i][2].x,dest_tri[i][2].y,dest_tri[i][3].x,dest_tri[i][3].y ));
         }
 
-        //makes a whole bunch of triangle objects from destination
-        for(int i = 0; i < dest_img.getGridLength() -1; i++)
-        {
-            for(int j = 0; j < dest_img.getGridHeight()-1; j++)
-            {
-                end_tri_odd_rows[i][j] = new Triangle(orig_points[i][j].getX(), orig_points[i][j].getY(), orig_points[i+1][j].getX(), orig_points[i+1][j].getY(), orig_points[i][j+1].getX(), orig_points[i][j+1].getY());
-                end_tri_even_rows[i][j] = new Triangle(orig_points[i+1][j].getX(), orig_points[i+1][j].getY(), orig_points[i+1][j+1].getX(), orig_points[i+1][j+1].getY(), orig_points[i][j+1].getX(), orig_points[i][j+1].getY());
+    }
 
-            }
-        }
+    public void blend(int step) {
+
+    }
+
+    public void make_betweens() {
+        MappedImage frame = new MappedImage(orig_img,true);
+
+        //finds distances in between points
+        if(inc_x_array == null || inc_y_array == null)
+            find_increments();
+
+
+
+
     }
 
 }

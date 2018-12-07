@@ -266,12 +266,7 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
 
     //Get the grid height of this MappedImage
     public int getGridHeight() { return gridHeight; }
-
-    //Change the control points of the MappedImage
-    public void setMappingPoints(ControlPoint[][] mappingPoints) {
-        this.mappingPoints = mappingPoints;
-    }
-
+    
     //Associate a MappedImage with this one
     public void setAssociatedImage(MappedImage image) {
         if(this.associatedImages.contains(image) || image.associatedImages.contains(this))

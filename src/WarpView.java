@@ -57,6 +57,7 @@ public class WarpView extends JFrame {
     private int timer_counter;
     //array to hold increment amounts
     private double[][] inc_x_array, inc_y_array;
+    private double[][] r_inc, g_inc, b_inc, a_inc;
 
     private ControlPoint[][] orig_points, end_points, morph_points;
 
@@ -81,6 +82,12 @@ public class WarpView extends JFrame {
         src_triangles = new ArrayList<>();
         dest_triangles = new ArrayList<>();
         frames = new ArrayList<>();
+
+        inc_x_array = null;
+        inc_y_array = null;
+        r_inc = null;
+        g_inc = null;
+        b_inc = null;
 
         initialize_GUI();
 
@@ -350,8 +357,7 @@ public class WarpView extends JFrame {
         public void actionPerformed(ActionEvent e){
             morph_frame = new JFrame("Morph");
 
-            //make_triangles(); // This creates two arrays of triangles, one for source image and destination image
-            find_increments();//finds increments between the points
+            make_betweens();
 
             timer_counter = 0;
 
@@ -380,14 +386,11 @@ public class WarpView extends JFrame {
         }
     }
 
-    public void morph_image(MappedImage src, MappedImage dest)
+    public void morph(MappedImage dest_img)
     {
-
-        MorphTools morphy = new MorphTools();
-
-        for(int i = 0; i<morphing_img.getGridLength()-1; i++)
+        for(int i = 1; i < frames.size()-1; i++)
         {
-               morphy.warpTriangle(src.getBufferedImage(), dest.getBufferedImage(), src_triangles.get(i), dest_triangles.get(i), null, null);
+               MorphTools.warpTriangle(orig_img.getBufferedImage(), dest_img.getBufferedImage(), src_triangles.get(i), dest_triangles.get(i), null, null);
 
         }
 
@@ -403,7 +406,6 @@ public class WarpView extends JFrame {
             for(int j = 0; j < morphing_img.getGridHeight(); j++)
             {
                 morph_points[i][j].setLocation(orig_points[i][j].getX() +timer_counter*inc_x_array[i][j],orig_points[i][j].getY()+timer_counter*inc_y_array[i][j]);
-                morphing_img.setMappingPoints(morph_points);
             }
         }
     }
@@ -415,7 +417,6 @@ public class WarpView extends JFrame {
             for(int j = 0; j < morphing_img.getGridHeight(); j++)
             {
                 morph_points[i][j].setLocation(end_points[i][j].getX(),end_points[i][j].getY());
-                morphing_img.setMappingPoints(morph_points);
             }
         }
         morphing_img.repaint();
@@ -443,26 +444,24 @@ public class WarpView extends JFrame {
         }
     }
 
-    public void apply_increment(MappedImage src, MappedImage dest, int step)
+    public void apply_increment(MappedImage dest, int step)
     {
         //morph points to feed back into morph)ima
-        ControlPoint[][] src_points = src.getMappingPoints();
         ControlPoint[][] dest_points = dest.getMappingPoints();
 
-        for(int i = 0; i<src_points.length; i++)
+        for(int i = 0; i<dest_points.length; i++)
         {
-            for(int j = 0; j < src_points[i].length; j++)
+            for(int j = 0; j < dest_points[i].length; j++)
             {
-                dest_points[i][j].setLocation(src_points[i][j].getX() +step * inc_x_array[i][j],src_points[i][j].getY()+step * inc_y_array[i][j]);
-                dest.setMappingPoints(dest_points);
+                dest_points[i][j].setLocation(orig_points[i][j].getX() +step * inc_x_array[i][j],orig_points[i][j].getY()+step * inc_y_array[i][j]);
             }
         }
 
     }
 
-    public void make_triangles(MappedImage src, MappedImage dest)
+    public void make_triangles(MappedImage dest)
     {
-        ControlPoint[][] src_tri = src.getTrianglePoints();
+        ControlPoint[][] src_tri = orig_img.getTrianglePoints();
         ControlPoint[][] dest_tri = dest.getTrianglePoints();
 
         src_triangles.clear();
@@ -477,19 +476,82 @@ public class WarpView extends JFrame {
 
     }
 
-    public void blend(int step) {
+    public void blend(MappedImage dest_img, int step) {
+
+        int width = orig_img.getBufferedImage().getWidth();
+        int height = orig_img.getBufferedImage().getHeight();
+
+        if(r_inc == null || g_inc == null || b_inc == null)
+        {
+            r_inc = new double[height][width];
+            g_inc = new double[height][width];
+            b_inc = new double[height][width];
+            a_inc = new double[height][width];
+
+            for (int i = 0; i < orig_img.getBufferedImage().getHeight(); i++)
+            {
+                for(int j = 0; j < orig_img.getBufferedImage().getWidth(); j++)
+                {
+                    Color origRGB = new Color(orig_img.getBufferedImage().getRGB(i,j));
+                    Color destRGB = new Color(dest_img.getBufferedImage().getRGB(i,j));
+
+                    int rdiff = destRGB.getRed() - origRGB.getRed();
+                    int gdiff = destRGB.getGreen() - origRGB.getGreen();
+                    int bdiff = destRGB.getBlue() - origRGB.getBlue();
+                    int adiff = destRGB.getAlpha() - origRGB.getAlpha();
+
+                    r_inc[i][j] = ((double) rdiff) / (frames_sec * seconds);
+                    g_inc[i][j] = ((double) gdiff) / (frames_sec * seconds);
+                    b_inc[i][j] = ((double) bdiff) / (frames_sec * seconds);
+                    a_inc[i][j] = ((double) adiff) / (frames_sec * seconds);
+                }
+            }
+        }
+
+        BufferedImage temp = dest_img.getBufferedImage();
+
+        for (int j = 0; j < temp.getHeight(); j++)
+        {
+            for (int k = 0; k < temp.getWidth(); k++)
+            {
+                Color pixelColor = new Color(temp.getRGB(j,k));
+
+                int rnew = (int) Math.floor(pixelColor.getRed() + r_inc[j][k] * step + 0.5);
+                int gnew = (int) Math.floor(pixelColor.getGreen() + g_inc[j][k] * step + 0.5);
+                int bnew = (int) Math.floor(pixelColor.getBlue() + (int) b_inc[j][k] * step + 0.5);
+                int anew = (int) Math.floor(pixelColor.getAlpha() + (int) a_inc[j][k] * step + 0.5);
+
+                Color newPixelColor = new Color(rnew, gnew, bnew, anew);
+
+                temp.setRGB(j, k, newPixelColor.getRGB());
+            }
+        }
+
 
     }
 
     public void make_betweens() {
-        MappedImage frame = new MappedImage(orig_img,true);
 
         //finds distances in between points
         if(inc_x_array == null || inc_y_array == null)
             find_increments();
 
+        frames.add(orig_img);
 
+        for (int i = 1; i < frames_sec * seconds - 2; i++ ) {
+            MappedImage frame = new MappedImage(orig_img, false);
+            frames.add(frame);
+        }
 
+        frames.add(dest_img);
+
+        for(int i = 1; i < frames.size() - 1; i++) {
+            MappedImage frame = frames.get(i);
+            apply_increment(frame, i);
+            make_triangles(frame);
+            morph(frame);
+            blend(frame, i);
+        }
 
     }
 

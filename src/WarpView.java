@@ -35,10 +35,10 @@ public class WarpView extends JFrame {
     private JButton settings_okay, settings_cancel, left_image_button, right_image_button, preview_morph_button, morph_button;
 
     //labels and inputs for frames and seconds and grid resolution
-    private JLabel frames_sec_label, seconds_label, grid_height_label, grid_length_label, brightness_label;
-    private TextField frames_sec_input, seconds_input;
-    private JSlider grid_height_input, grid_length_input, brightness_input;
-    private int frames_sec, seconds, grid_height, grid_length, brightness;
+    private JLabel frames_sec_label, seconds_label, grid_height_label, grid_length_label, brightness_label_left, brightness_label_right, frame_length_label, frame_height_label;
+    private TextField frames_sec_input, seconds_input, frame_length_input, frame_height_input;
+    private JSlider grid_height_input, grid_length_input, brightness_input_left, brightness_input_right;
+    private int frames_sec, seconds;
 
     //filechooser to pick files
     private JFileChooser file_choose;
@@ -52,7 +52,7 @@ public class WarpView extends JFrame {
     private MappedImage orig_img, dest_img, morphing_img;
 
     //Timer to control time of morph
-    private Timer preview_timer, morph_timer;
+    private Timer preview_timer, morph_timer, settings_timer;
 
     private int timer_counter;
     //array to hold increment amounts
@@ -64,8 +64,6 @@ public class WarpView extends JFrame {
     private ArrayList<Triangle> src_triangles, dest_triangles;
 
     private ArrayList<MappedImage> frames;
-
-    private BufferedImage temp_buff_img;
 
     //constructor
     public WarpView()
@@ -153,6 +151,8 @@ public class WarpView extends JFrame {
     //method that loads image
     public void load_image()
     {
+        inc_x_array = null;
+        inc_y_array = null;
 
         file_choose = new JFileChooser();
         int file_return = file_choose.showOpenDialog(file_choose);
@@ -188,7 +188,7 @@ public class WarpView extends JFrame {
 
             //Jframe to hold it
             settings_panel = new JFrame("  Settings");
-            settings_panel.setLayout(new GridLayout(7,2,30,40));
+            settings_panel.setLayout(new GridLayout(9,2,30,40));
 
             //labels for button
             frames_sec_label = new JLabel("  Frames per Second");
@@ -207,39 +207,82 @@ public class WarpView extends JFrame {
             settings_panel.add(seconds_input);
             seconds_input.addActionListener(this);
 
-            grid_height_label = new JLabel( "  Grid Height");
+            frame_length_label = new JLabel("  Frame Length:" );
+            settings_panel.add(frame_length_label);
+
+            frame_length_input = new TextField(10);
+            settings_panel.add(frame_length_input);
+            frame_length_input.addActionListener(this);
+
+            frame_height_label = new JLabel("  Frame Height:" );
+            settings_panel.add(frame_height_label);
+
+            frame_height_input = new TextField(10);
+            settings_panel.add(frame_height_input);
+            frame_height_input.addActionListener(this);
+
+            grid_height_label = new JLabel( "  Grid Height:  ");
             settings_panel.add(grid_height_label);
 
             grid_height_input = new JSlider();
             grid_height_input.setMinimum(1);
             grid_height_input.setMaximum(20);
             grid_height_input.setValue(10);
-            grid_height_input.setPaintTicks(true);
             settings_panel.add(grid_height_input);
 
 
-            grid_length_label = new JLabel( "  Grid Length");
+            grid_length_label = new JLabel( "  Grid Length:  ");
             settings_panel.add(grid_length_label);
 
             grid_length_input = new JSlider();
             grid_length_input.setMinimum(1);
             grid_length_input.setMaximum(20);
             grid_length_input.setValue(10);
-            grid_length_input.setPaintTicks(true);
-
             settings_panel.add(grid_length_input);
 
+            brightness_label_left = new JLabel("  Brightness(left image):  ");
+            settings_panel.add(brightness_label_left);
+            brightness_input_left = new JSlider();
+            brightness_input_left.setMinimum(1); //values will be divided by 10 when passed into mapped images
+            brightness_input_left.setMaximum(20);
+            brightness_input_left.setValue(10);
 
-/*
-    private JLabel frames_sec_label, seconds_label, grid_height_label, grid_length_label, brightness_label;
-    private TextField frames_sec_input, seconds_input;
-    private JSlider grid_height_input, grid_length_input, brightness_input;
-    private int frames_sec, seconds, grid_height, grid_length, brightness;
+            settings_panel.add(brightness_input_left);
 
-            grid_height_input = new TextField(10);
-            settings_panel.add(grid_height_input);
-            grid_height_input.addActionListener(this);
-*/
+            brightness_label_right = new JLabel("  Brightness(right image):  ");
+            settings_panel.add(brightness_label_right);
+            brightness_input_right = new JSlider();
+            brightness_input_right.setMinimum(1); //values will be divided by 10 when passed into mapped images
+            brightness_input_right.setMaximum(20);
+            brightness_input_right.setValue(10);
+
+            settings_panel.add(brightness_input_right);
+
+
+            settings_timer = new Timer(10, actionEvent -> {
+                brightness_label_left.setText("  Brightness(left image):  " + brightness_input_left.getValue());
+                brightness_label_right.setText("  Brightness(right image):  " + brightness_input_right.getValue());
+                grid_height_label.setText("  Grid Height:  " + grid_height_input.getValue());
+                grid_length_label.setText("  Grid Length:  "+ grid_length_input.getValue());
+            }
+            );
+
+            settings_timer.start();
+
+            /*
+            preview_timer = new Timer((1000*seconds)/frames_sec, actionEvent -> {
+                preview_old_to_new();
+                morphing_img.repaint();
+
+                //counter so that preview_timer will stop after going through all the frames
+                timer_counter++;
+                if(timer_counter == (seconds*frames_sec)-1) {
+                    preview_timer.stop();
+                    finalize_morph();
+                }
+            });
+             */
+
 
             //confirms text field entries
             settings_okay = new JButton("OK");
@@ -269,12 +312,27 @@ public class WarpView extends JFrame {
     class set_ok implements ActionListener{
         public void actionPerformed(ActionEvent e){
 
-                            orig_img.setVisibleGridDimensions(orig_img.getGridLength()-2,grid_height_input.getValue());
-                            dest_img.setVisibleGridDimensions(dest_img.getGridLength()-2, grid_height_input.getValue());
+            //sets grid size
+            orig_img.setVisibleGridDimensions(orig_img.getGridLength()-2,grid_height_input.getValue());
+            dest_img.setVisibleGridDimensions(dest_img.getGridLength()-2, grid_height_input.getValue());
 
-                            orig_img.setVisibleGridDimensions(grid_length_input.getValue(), orig_img.getGridHeight()-2);
-                            dest_img.setVisibleGridDimensions(grid_length_input.getValue(), orig_img.getGridHeight()-2);
+            orig_img.setVisibleGridDimensions(grid_length_input.getValue(), orig_img.getGridHeight()-2);
+            dest_img.setVisibleGridDimensions(grid_length_input.getValue(), orig_img.getGridHeight()-2);
 
+            //changes brightness with error checking
+            if(orig_img.getBufferedImage() != null)
+                orig_img.brighten(((float)brightness_input_left.getValue()) / 10);
+            if(dest_img.getBufferedImage() != null)
+                dest_img.brighten(((float)brightness_input_right.getValue()) / 10);
+
+            try {
+                orig_img.setFrameDimensions(Integer.parseInt(frame_length_input.getText()), Integer.parseInt(frame_height_input.getText()));
+
+            } catch(Exception x){}
+
+            try {
+                dest_img.setFrameDimensions(Integer.parseInt(frame_length_input.getText()), Integer.parseInt(frame_height_input.getText()));
+            } catch(Exception x){}
 
             //need to add something in here to make sure the two have default values
             try {
@@ -364,6 +422,7 @@ public class WarpView extends JFrame {
             //timer actives every frame
             morph_timer = new Timer((1000*seconds)/frames_sec, actionEvent -> {
 
+                morph(dest_img);
                 //morph_image();
 
                 //              blend
@@ -426,6 +485,8 @@ public class WarpView extends JFrame {
     {
         //gets grid of increments
         int num_increments = seconds*frames_sec;
+
+
 
         orig_points = orig_img.getMappingPoints();
         end_points = dest_img.getMappingPoints();

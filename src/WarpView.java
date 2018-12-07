@@ -58,9 +58,9 @@ public class WarpView extends JFrame {
 
     private Triangle[][] orig_tri_odd_rows, orig_tri_even_rows, end_tri_odd_rows, end_tri_even_rows, morph_tri_odd_rows, morph_tri_even_rows;
 
-    private BufferedImage temp_buff_img;
+    private Triangle[] orig_triangle, end_triangle, morph_triangle;
 
-//    private tween_tri_arr;
+    private BufferedImage temp_buff_img;
 
     //constructor
     public WarpView()
@@ -191,15 +191,13 @@ public class WarpView extends JFrame {
             settings_panel.add(seconds_input);
             seconds_input.addActionListener(this);
 
-
             grid_height_label = new JLabel( "  Grid Height");
             settings_panel.add(grid_height_label);
-
+/*
             grid_height_input = new TextField(10);
             settings_panel.add(grid_height_input);
             grid_height_input.addActionListener(this);
-
-
+*/
 
             //confirms text field entries
             settings_okay = new JButton("OK");
@@ -346,6 +344,7 @@ public class WarpView extends JFrame {
         morph_tri_odd_rows = orig_tri_odd_rows;
 
         MorphTools morphy = new MorphTools();
+
         Triangle temp_triangle_even = new Triangle(0,0,1,1,2,2);
         Triangle temp_triangle_odd = new Triangle(0,0,1,1,2,2);
 
@@ -391,7 +390,6 @@ public class WarpView extends JFrame {
                 morphing_img.setMappingPoints(morph_points);
             }
         }
-
     }
 
     public void finalize_morph()

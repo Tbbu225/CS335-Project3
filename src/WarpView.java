@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -33,10 +35,10 @@ public class WarpView extends JFrame {
     private JButton settings_okay, settings_cancel, left_image_button, right_image_button, preview_morph_button, morph_button;
 
     //labels and inputs for frames and seconds and grid resolution
-    private JLabel frames_sec_label, seconds_label, grid_height_label, grid_length_label;
+    private JLabel frames_sec_label, seconds_label, grid_height_label, grid_length_label, brightness_label;
     private TextField frames_sec_input, seconds_input;
-    private JSlider grid_height_input, grid_length_input;
-    private int frames_sec, seconds, grid_height, grid_length;
+    private JSlider grid_height_input, grid_length_input, brightness_input;
+    private int frames_sec, seconds, grid_height, grid_length, brightness;
 
     //filechooser to pick files
     private JFileChooser file_choose;
@@ -144,6 +146,7 @@ public class WarpView extends JFrame {
     //method that loads image
     public void load_image()
     {
+
         file_choose = new JFileChooser();
         int file_return = file_choose.showOpenDialog(file_choose);
         if(file_return == JFileChooser.APPROVE_OPTION)
@@ -178,7 +181,7 @@ public class WarpView extends JFrame {
 
             //Jframe to hold it
             settings_panel = new JFrame("  Settings");
-            settings_panel.setLayout(new GridLayout(5,2,30,40));
+            settings_panel.setLayout(new GridLayout(7,2,30,40));
 
             //labels for button
             frames_sec_label = new JLabel("  Frames per Second");
@@ -199,7 +202,33 @@ public class WarpView extends JFrame {
 
             grid_height_label = new JLabel( "  Grid Height");
             settings_panel.add(grid_height_label);
+
+            grid_height_input = new JSlider();
+            grid_height_input.setMinimum(1);
+            grid_height_input.setMaximum(20);
+            grid_height_input.setValue(10);
+            grid_height_input.setPaintTicks(true);
+            settings_panel.add(grid_height_input);
+
+
+            grid_length_label = new JLabel( "  Grid Length");
+            settings_panel.add(grid_length_label);
+
+            grid_length_input = new JSlider();
+            grid_length_input.setMinimum(1);
+            grid_length_input.setMaximum(20);
+            grid_length_input.setValue(10);
+            grid_length_input.setPaintTicks(true);
+
+            settings_panel.add(grid_length_input);
+
+
 /*
+    private JLabel frames_sec_label, seconds_label, grid_height_label, grid_length_label, brightness_label;
+    private TextField frames_sec_input, seconds_input;
+    private JSlider grid_height_input, grid_length_input, brightness_input;
+    private int frames_sec, seconds, grid_height, grid_length, brightness;
+
             grid_height_input = new TextField(10);
             settings_panel.add(grid_height_input);
             grid_height_input.addActionListener(this);
@@ -216,7 +245,7 @@ public class WarpView extends JFrame {
             settings_cancel.addActionListener((new set_cancel()));
 
             //sets the pop up window visible
-            settings_panel.setSize(400, 300);
+            settings_panel.setSize(500, 500);
             settings_panel.setVisible(true);
         }
     }
@@ -232,6 +261,13 @@ public class WarpView extends JFrame {
     //this one sets the values of seconds and frames per second
     class set_ok implements ActionListener{
         public void actionPerformed(ActionEvent e){
+
+                            orig_img.setVisibleGridDimensions(orig_img.getGridLength()-2,grid_height_input.getValue());
+                            dest_img.setVisibleGridDimensions(dest_img.getGridLength()-2, grid_height_input.getValue());
+
+                            orig_img.setVisibleGridDimensions(grid_length_input.getValue(), orig_img.getGridHeight()-2);
+                            dest_img.setVisibleGridDimensions(grid_length_input.getValue(), orig_img.getGridHeight()-2);
+
 
             //need to add something in here to make sure the two have default values
             try {

@@ -27,7 +27,7 @@ import java.util.Map;
 public class WarpView extends JFrame {
 
     //Jpanel to hold buttons, and images
-    private JPanel button_panel, image_panel;
+    private JPanel button_panel, image_panel, morph_panel;
 
     //JFrame for pop up menu on settings, then one for preview morph
     private JFrame settings_panel, preview_frame, morph_frame;
@@ -43,7 +43,7 @@ public class WarpView extends JFrame {
     private JLabel frames_sec_label, seconds_label, grid_height_label, grid_length_label, brightness_label_left, brightness_label_right, frame_length_label, frame_height_label;
     private TextField frames_sec_input, seconds_input, frame_length_input, frame_height_input;
     private JSlider grid_height_input, grid_length_input, brightness_input_left, brightness_input_right;
-    private int frames_sec, seconds;
+    private int frames_sec, seconds, left_bright, right_bright;
 
     //filechooser to pick files
     private JFileChooser file_choose;
@@ -51,7 +51,7 @@ public class WarpView extends JFrame {
     //flag for which image to load
     private Boolean load_left_flag;
 
-    private Container c;
+    private Container c, d;
 
     //mapped image objects
     private MappedImage orig_img, dest_img, morphing_img;
@@ -76,6 +76,8 @@ public class WarpView extends JFrame {
         //set initial values
         frames_sec = 10;
         seconds = 2;
+        left_bright = 10;
+        right_bright = 10;
 
         //constructor to load mapped image
         orig_img = new MappedImage( 10, 480,318, 10);
@@ -186,6 +188,19 @@ public class WarpView extends JFrame {
             //frames
             //save control point
             //JFileChooser chooser = new JFileChooser();
+
+
+                        JFileChooser chooser = new JFileChooser();
+            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            chooser.setAcceptAllFileFilterUsed(false);
+            chooser.setCurrentDirectory(new java.io.File("."));
+
+            if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                File output_dir = chooser.getCurrentDirectory();
+            }
+            else {  return;
+            }
+
             
             for(int i = 0; i < frames.size(); i++)
             {
@@ -262,7 +277,7 @@ public class WarpView extends JFrame {
             brightness_input_left = new JSlider();
             brightness_input_left.setMinimum(1); //values will be divided by 10 when passed into mapped images
             brightness_input_left.setMaximum(20);
-            brightness_input_left.setValue(10);
+            brightness_input_left.setValue(left_bright);
 
             settings_panel.add(brightness_input_left);
 
@@ -271,10 +286,9 @@ public class WarpView extends JFrame {
             brightness_input_right = new JSlider();
             brightness_input_right.setMinimum(1); //values will be divided by 10 when passed into mapped images
             brightness_input_right.setMaximum(20);
-            brightness_input_right.setValue(10);
+            brightness_input_right.setValue(right_bright);
 
             settings_panel.add(brightness_input_right);
-
 
             settings_timer = new Timer(10, actionEvent -> {
                 brightness_label_left.setText("  Brightness(left image):  " + brightness_input_left.getValue());
@@ -322,10 +336,14 @@ public class WarpView extends JFrame {
             dest_img.setVisibleGridDimensions(grid_length_input.getValue(), orig_img.getGridHeight()-2);
 
             //changes brightness with error checking
-            if(orig_img.getBufferedImage() != null)
-                orig_img.brighten(((float)brightness_input_left.getValue()) / 10);
-            if(dest_img.getBufferedImage() != null)
-                dest_img.brighten(((float)brightness_input_right.getValue()) / 10);
+            if(orig_img.getBufferedImage() != null) {
+                orig_img.brighten(((float) brightness_input_left.getValue()) / 10);
+                left_bright = brightness_input_left.getValue();
+            }
+            if(dest_img.getBufferedImage() != null) {
+                dest_img.brighten(((float) brightness_input_right.getValue()) / 10);
+                right_bright = brightness_input_right.getValue();
+            }
 
             try {
                 orig_img.setFrameDimensions(Integer.parseInt(frame_length_input.getText()), Integer.parseInt(frame_height_input.getText()));
@@ -419,16 +437,33 @@ public class WarpView extends JFrame {
             {
                 return;
             }
-            morph_frame = new JFrame("Morph");
 
+            morph_frame = new JFrame("Morph");
+            morph_panel = new JPanel();
+//            morph_frame.add(morph_panel);
             make_betweens();
 
             timer_counter = 0;
 
+            d = morph_frame.getContentPane();
+            d.add(morph_panel);
+            morph(dest_img);
+            morph_panel.setLayout(new FlowLayout());
+
+            morph_frame.pack();
+            morph_frame.setSize(800,600/*orig_img.getHeight()+200,orig_img.getWidth()+200*/);
+            morph_frame.setVisible(true);
+
             //timer actives every frame
             morph_timer = new Timer((1000*seconds)/frames_sec, actionEvent -> {
 
-                morph(dest_img);
+                if(timer_counter != 0)
+                {
+                    morph_panel.remove(frames.get(timer_counter));
+                }
+
+                morph_panel.add(frames.get(timer_counter+1));
+                d.repaint();
 
                 //counter so that preview_timer will stop after going through all the frames
                 timer_counter++;
@@ -440,16 +475,12 @@ public class WarpView extends JFrame {
 
             morph_timer.start();
 
-            morph_frame.add(morphing_img);
-
-            morph_frame.setSize(orig_img.getHeight()+40,orig_img.getWidth()+40);
-            morph_frame.setVisible(true);
         }
     }
 
     public void morph(MappedImage dest_img)
     {
-        for(int i = 0; i < src_triangles.size(); i++)
+        for(int i = 1; i < frames.size()-2; i++)
         {
                MorphTools.warpTriangle(orig_img.getBufferedImage(), dest_img.getBufferedImage(), src_triangles.get(i), dest_triangles.get(i), null, null);
 
@@ -539,7 +570,7 @@ public class WarpView extends JFrame {
 
     }
 
-    public void blend(MappedImage frame, int step) {
+    public void blend(MappedImage dest_img, int step) {
 
         int width = orig_img.getBufferedImage().getWidth();
         int height = orig_img.getBufferedImage().getHeight();
@@ -561,15 +592,17 @@ public class WarpView extends JFrame {
                     int rdiff = destRGB.getRed() - origRGB.getRed();
                     int gdiff = destRGB.getGreen() - origRGB.getGreen();
                     int bdiff = destRGB.getBlue() - origRGB.getBlue();
+                    int adiff = destRGB.getAlpha() - origRGB.getAlpha();
 
                     r_inc[i][j] = ((double) rdiff) / (frames_sec * seconds);
                     g_inc[i][j] = ((double) gdiff) / (frames_sec * seconds);
                     b_inc[i][j] = ((double) bdiff) / (frames_sec * seconds);
+                    a_inc[i][j] = ((double) adiff) / (frames_sec * seconds);
                 }
             }
         }
 
-        BufferedImage destImgBuffered = frame.getBufferedImage();
+        BufferedImage destImgBuffered = dest_img.getBufferedImage();
         BufferedImage origImgBuffered = orig_img.getBufferedImage();
 
         for (int j = 0; j < destImgBuffered.getHeight(); j++)
@@ -580,13 +613,15 @@ public class WarpView extends JFrame {
 
                 int rnew = (int) Math.floor(pixelColor.getRed() + r_inc[j][k] * step + 0.5);
                 int gnew = (int) Math.floor(pixelColor.getGreen() + g_inc[j][k] * step + 0.5);
-                int bnew = (int) Math.floor(pixelColor.getBlue() + b_inc[j][k] * step + 0.5);
+                int bnew = (int) Math.floor(pixelColor.getBlue() + (int) b_inc[j][k] * step + 0.5);
+                int anew = (int) Math.floor(pixelColor.getAlpha() + (int) a_inc[j][k] * step + 0.5);
 
                 rnew = Math.max(0,Math.min(255,rnew));
-                gnew = Math.max(0,Math.min(255,gnew));
+                gnew = Math.max(0,Math.max(255,gnew));
                 bnew = Math.max(0,Math.min(255,bnew));
+                anew = Math.max(0,Math.min(255,anew));
 
-                Color newPixelColor = new Color(rnew, gnew, bnew);
+                Color newPixelColor = new Color(rnew, gnew, bnew, anew);
 
                 destImgBuffered.setRGB(k, j, newPixelColor.getRGB());
             }

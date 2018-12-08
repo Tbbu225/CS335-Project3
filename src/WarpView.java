@@ -213,7 +213,6 @@ public class WarpView extends JFrame {
                         e1.printStackTrace();
                     }
                 }
-            
         }
     }
 
@@ -447,6 +446,7 @@ public class WarpView extends JFrame {
             }
 
             make_betweens();
+            morph(dest_img);
 
             morph_frame = new JFrame("Morph");
 
@@ -649,8 +649,8 @@ public class WarpView extends JFrame {
             MappedImage frame = frames.get(i);
             apply_increment(frame, i);
             make_triangles(frame);
-            morph(frame);
             blend(frame, i);
+            morph(frame);
         }
     }
 }

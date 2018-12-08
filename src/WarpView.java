@@ -184,36 +184,38 @@ public class WarpView extends JFrame {
         }
     }
 
+    //saves
     class morph_save implements ActionListener {
         public void actionPerformed(ActionEvent e) {
 
             make_betweens();
-
+            morph(dest_img);
             //frames
             //save control point
             //JFileChooser chooser = new JFileChooser();
 
-                        JFileChooser chooser = new JFileChooser();
+            JFileChooser chooser = new JFileChooser();
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             chooser.setAcceptAllFileFilterUsed(false);
             chooser.setCurrentDirectory(new java.io.File("."));
 
             if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                File output_dir = chooser.getCurrentDirectory();
+
+
+                for (int i = 0; i < frames.size(); i++) {
+                    File output = new File("output" + i + ".jpg");
+                    try {
+                        ImageIO.write(frames.get(i).getBufferedImage(), ".jpg", new File(chooser.getCurrentDirectory() + "output" + i + ".jpg"));
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                }
             }
             else {  return;
             }
 
-            
-            for(int i = 0; i < frames.size(); i++)
-            {
-                File output = new File("output"+i);
-                try {
-                    ImageIO.write(frames.get(i).getBufferedImage(), "jpg", output);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-            }
+
+
         }
     }
 
@@ -522,7 +524,6 @@ public class WarpView extends JFrame {
     {
         //gets grid of increments
         int num_increments = seconds*frames_sec;
-
 
 
         orig_points = orig_img.getMappingPoints();

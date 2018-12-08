@@ -412,6 +412,9 @@ public class WarpView extends JFrame {
     class preview_morph implements ActionListener{
         public void actionPerformed(ActionEvent e){
 
+            if(orig_img.getBufferedImage() == null || dest_img.getBufferedImage() == null)
+                return;
+
             morphing_img = new MappedImage(orig_img,true);
 
             //finds distances in between points
@@ -451,7 +454,6 @@ public class WarpView extends JFrame {
             }
 
             make_betweens();
-            morph(dest_img);
 
             morph_frame = new JFrame("Morph");
 

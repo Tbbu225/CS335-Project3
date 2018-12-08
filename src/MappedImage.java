@@ -238,7 +238,8 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
     public void brighten(float scale) {
 
         //Set rescale to change brightness
-        RescaleOp brighten = new RescaleOp(scale, 0.0f, null);
+
+        RescaleOp brighten = new RescaleOp( new float[] {scale, scale, scale, 1.0f}, new float[] {0.0f, 0.0f, 0.0f, 0.0f}, null);
 
         //Create temporary image of initial image (unprocessed image)
         BufferedImage tempImage = new BufferedImage(initialImage.getWidth(), initialImage.getHeight(),

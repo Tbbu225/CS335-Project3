@@ -628,6 +628,10 @@ public class WarpView extends JFrame {
 
     public void make_betweens() {
 
+        //Clear out list if there are frames in the buffer from
+        //previous renders
+        frames.clear();
+
         //finds distances in between points
         if(inc_x_array == null || inc_y_array == null)
             find_increments();

@@ -446,7 +446,6 @@ public class WarpView extends JFrame {
             }
 
             make_betweens();
-            morph(dest_img);
 
             morph_frame = new JFrame("Morph");
 
@@ -471,7 +470,7 @@ public class WarpView extends JFrame {
 
                 //counter so that preview_timer will stop after going through all the frames
                 timer_counter++;
-                if(timer_counter == (seconds*frames_sec)-2) {
+                if(timer_counter == (seconds*frames_sec-1)) {
                     morph_timer.stop();
                 }
             });

@@ -182,8 +182,8 @@ public class MappedImage extends JPanel implements MouseListener, MouseMotionLis
             }
 
             //Copy the scaled image into actual image displayed by the MappedImage
-            image = new BufferedImage(imageLength, imageHeight, originalImage.getType());
-            initialImage = new BufferedImage(imageLength, imageHeight, originalImage.getType());
+            image = new BufferedImage(imageLength, imageHeight, BufferedImage.TYPE_INT_ARGB);
+            initialImage = new BufferedImage(imageLength, imageHeight, BufferedImage.TYPE_INT_ARGB);
             Graphics2D bufferGraphics = image.createGraphics();
             Graphics2D initialBufferGraphics = initialImage.createGraphics();
             bufferGraphics.drawImage(scaledImage, 0, 0, null);

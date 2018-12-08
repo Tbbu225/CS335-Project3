@@ -188,8 +188,13 @@ public class WarpView extends JFrame {
     class morph_save implements ActionListener {
         public void actionPerformed(ActionEvent e) {
 
+
+
             make_betweens();
-            morph(dest_img);
+
+            if(frames.isEmpty())
+                return;
+
             //frames
             //save control point
             //JFileChooser chooser = new JFileChooser();
@@ -334,12 +339,12 @@ public class WarpView extends JFrame {
         public void actionPerformed(ActionEvent e){
 
             //sets grid size
-            orig_img.setVisibleGridDimensions(orig_img.getGridLength()-2,grid_height_input.getValue());
-            dest_img.setVisibleGridDimensions(dest_img.getGridLength()-2, grid_height_input.getValue());
+            orig_img.setVisibleGridDimensions(grid_length_input.getValue(), grid_height_input.getValue());
+            dest_img.setVisibleGridDimensions(grid_length_input.getValue(), grid_height_input.getValue());
+
+
             grid_height = grid_height_input.getValue();
 
-            orig_img.setVisibleGridDimensions(grid_length_input.getValue(), orig_img.getGridHeight()-2);
-            dest_img.setVisibleGridDimensions(grid_length_input.getValue(), orig_img.getGridHeight()-2);
             grid_length = grid_length_input.getValue();
 
             //changes brightness with error checking
@@ -445,7 +450,6 @@ public class WarpView extends JFrame {
                 return;
             }
 
-//            morph_frame.add(morph_panel);
             make_betweens();
             morph(dest_img);
 
@@ -465,6 +469,7 @@ public class WarpView extends JFrame {
             //timer actives every frame
             morph_timer = new Timer((1000*seconds)/frames_sec, actionEvent -> {
 
+                morph(dest_img);
                 ClassLoader loader = getClass().getClassLoader();
 
                 Icon temp = new ImageIcon(frames.get(timer_counter+1).getBufferedImage());
@@ -657,7 +662,5 @@ public class WarpView extends JFrame {
             morph(frame);
             blend(frame, i);
         }
-
     }
-
 }

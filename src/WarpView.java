@@ -437,6 +437,7 @@ public class WarpView extends JFrame {
             {
                 return;
             }
+
             morph_frame = new JFrame("Morph");
             morph_panel = new JPanel();
 //            morph_frame.add(morph_panel);
@@ -447,7 +448,11 @@ public class WarpView extends JFrame {
             d = morph_frame.getContentPane();
             d.add(morph_panel);
             morph(dest_img);
+            morph_panel.setLayout(new FlowLayout());
 
+            morph_frame.pack();
+            morph_frame.setSize(800,600/*orig_img.getHeight()+200,orig_img.getWidth()+200*/);
+            morph_frame.setVisible(true);
 
             //timer actives every frame
             morph_timer = new Timer((1000*seconds)/frames_sec, actionEvent -> {
@@ -458,8 +463,7 @@ public class WarpView extends JFrame {
                 }
 
                 morph_panel.add(frames.get(timer_counter+1));
-                morph_frame.repaint();
-
+                d.repaint();
 
                 //counter so that preview_timer will stop after going through all the frames
                 timer_counter++;
@@ -469,13 +473,7 @@ public class WarpView extends JFrame {
                 }
             });
 
-            morph_frame.setSize(800,600/*orig_img.getHeight()+200,orig_img.getWidth()+200*/);
-            morph_frame.setVisible(true);
-
-
             morph_timer.start();
-
-//            morph_frame.add(morphing_img);
 
         }
     }

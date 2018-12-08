@@ -74,8 +74,8 @@ public class WarpView extends JFrame {
     public WarpView()
     {
         //set initial values
-        frames_sec = 10;
-        seconds = 2;
+        frames_sec = 2;
+        seconds = 3;
         left_bright = 10;
         right_bright = 10;
         grid_height = 10;
@@ -446,11 +446,8 @@ public class WarpView extends JFrame {
             }
 
             make_betweens();
-
             morph_frame = new JFrame("Morph");
-
             morphing_image_label = new JLabel(new ImageIcon(orig_img.getBufferedImage()));
-
             timer_counter = 0;
 
             d = morph_frame.getContentPane();
@@ -463,14 +460,15 @@ public class WarpView extends JFrame {
             //timer actives every frame
             morph_timer = new Timer((1000*seconds)/frames_sec, actionEvent -> {
 
-                Icon temp = new ImageIcon(frames.get(timer_counter+1).getBufferedImage());
+                Icon temp = new ImageIcon(frames.get(timer_counter).getBufferedImage());
 
                 morphing_image_label.setIcon(temp);
-                repaint();
+                morphing_image_label.repaint();
 
                 //counter so that preview_timer will stop after going through all the frames
                 timer_counter++;
-                if(timer_counter == (seconds*frames_sec-1)) {
+                if(timer_counter == ((seconds*frames_sec))) {
+
                     morph_timer.stop();
                 }
             });

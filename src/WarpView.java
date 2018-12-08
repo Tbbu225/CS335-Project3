@@ -108,7 +108,7 @@ public class WarpView extends JFrame {
         main_menu = new JMenuBar();
 
         morph_save = new JMenuItem("Morph Save");
-        main_menu.add(morph_save);  //Reserved for when we need it
+        main_menu.add(morph_save);
         morph_save.addActionListener(new morph_save());
 
         settings_menu_item = new JMenuItem("Settings");
@@ -184,10 +184,9 @@ public class WarpView extends JFrame {
         }
     }
 
-    //saves
+    //saves jpegs from frame to directory
     class morph_save implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-
 
             make_betweens();
 
@@ -197,29 +196,24 @@ public class WarpView extends JFrame {
             //frames
             //save control point
             //JFileChooser chooser = new JFileChooser();
-
+/*
             JFileChooser chooser = new JFileChooser();
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             chooser.setAcceptAllFileFilterUsed(false);
             chooser.setCurrentDirectory(new java.io.File("."));
 
             if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-
+*/
 
                 for (int i = 0; i < frames.size(); i++) {
-                    File output = new File("output" + i + ".jpg");
+                    File output = new File("output" + i + ".png");
                     try {
-                        ImageIO.write(frames.get(i).getBufferedImage(), ".jpg", new File(chooser.getCurrentDirectory() + "output" + i + ".jpg"));
+                        ImageIO.write(frames.get(i).getBufferedImage(), "png", new File("output" + i));
                     } catch (IOException e1) {
                         e1.printStackTrace();
                     }
                 }
-            }
-            else {  return;
-            }
-
-
-
+            
         }
     }
 

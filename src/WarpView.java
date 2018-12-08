@@ -40,10 +40,10 @@ public class WarpView extends JFrame {
     private JButton settings_okay, settings_cancel, left_image_button, right_image_button, preview_morph_button, morph_button;
 
     //labels and inputs for frames and seconds and grid resolution
-    private JLabel frames_sec_label, seconds_label, grid_height_label, grid_length_label, brightness_label_left, brightness_label_right, frame_length_label, frame_height_label;
+    private JLabel frames_sec_label, seconds_label, grid_height_label, grid_length_label, brightness_label_left, brightness_label_right, frame_length_label, frame_height_label, morphing_image_label;
     private TextField frames_sec_input, seconds_input, frame_length_input, frame_height_input;
     private JSlider grid_height_input, grid_length_input, brightness_input_left, brightness_input_right;
-    private int frames_sec, seconds, left_bright, right_bright;
+    private int frames_sec, seconds, left_bright, right_bright, grid_height, grid_length;
 
     //filechooser to pick files
     private JFileChooser file_choose;
@@ -78,6 +78,8 @@ public class WarpView extends JFrame {
         seconds = 2;
         left_bright = 10;
         right_bright = 10;
+        grid_height = 10;
+        grid_length = 10;
 
         //constructor to load mapped image
         orig_img = new MappedImage( 10, 480,318, 10);
@@ -185,10 +187,11 @@ public class WarpView extends JFrame {
     class morph_save implements ActionListener {
         public void actionPerformed(ActionEvent e) {
 
+            make_betweens();
+
             //frames
             //save control point
             //JFileChooser chooser = new JFileChooser();
-
 
                         JFileChooser chooser = new JFileChooser();
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -259,7 +262,7 @@ public class WarpView extends JFrame {
             grid_height_input = new JSlider();
             grid_height_input.setMinimum(1);
             grid_height_input.setMaximum(20);
-            grid_height_input.setValue(10);
+            grid_height_input.setValue(grid_height);
             settings_panel.add(grid_height_input);
 
 
@@ -269,7 +272,7 @@ public class WarpView extends JFrame {
             grid_length_input = new JSlider();
             grid_length_input.setMinimum(1);
             grid_length_input.setMaximum(20);
-            grid_length_input.setValue(10);
+            grid_length_input.setValue(grid_length);
             settings_panel.add(grid_length_input);
 
             brightness_label_left = new JLabel("  Brightness(left image):  ");
@@ -331,9 +334,11 @@ public class WarpView extends JFrame {
             //sets grid size
             orig_img.setVisibleGridDimensions(orig_img.getGridLength()-2,grid_height_input.getValue());
             dest_img.setVisibleGridDimensions(dest_img.getGridLength()-2, grid_height_input.getValue());
+            grid_height = grid_height_input.getValue();
 
             orig_img.setVisibleGridDimensions(grid_length_input.getValue(), orig_img.getGridHeight()-2);
             dest_img.setVisibleGridDimensions(grid_length_input.getValue(), orig_img.getGridHeight()-2);
+            grid_length = grid_length_input.getValue();
 
             //changes brightness with error checking
             if(orig_img.getBufferedImage() != null) {
@@ -438,17 +443,18 @@ public class WarpView extends JFrame {
                 return;
             }
 
-            morph_frame = new JFrame("Morph");
-            morph_panel = new JPanel();
 //            morph_frame.add(morph_panel);
             make_betweens();
+            morph(dest_img);
+
+            morph_frame = new JFrame("Morph");
+
+            morphing_image_label = new JLabel(new ImageIcon(orig_img.getBufferedImage()));
 
             timer_counter = 0;
 
             d = morph_frame.getContentPane();
-            d.add(morph_panel);
-            morph(dest_img);
-            morph_panel.setLayout(new FlowLayout());
+            d.add(morphing_image_label);
 
             morph_frame.pack();
             morph_frame.setSize(800,600/*orig_img.getHeight()+200,orig_img.getWidth()+200*/);
@@ -457,17 +463,16 @@ public class WarpView extends JFrame {
             //timer actives every frame
             morph_timer = new Timer((1000*seconds)/frames_sec, actionEvent -> {
 
-                if(timer_counter != 0)
-                {
-                    morph_panel.remove(frames.get(timer_counter));
-                }
+                ClassLoader loader = getClass().getClassLoader();
 
-                morph_panel.add(frames.get(timer_counter+1));
-                d.repaint();
+                Icon temp = new ImageIcon(frames.get(timer_counter+1).getBufferedImage());
+
+                morphing_image_label.setIcon(temp);
+                repaint();
 
                 //counter so that preview_timer will stop after going through all the frames
                 timer_counter++;
-                if(timer_counter == (seconds*frames_sec)-1) {
+                if(timer_counter == (seconds*frames_sec)-2) {
                     morph_timer.stop();
 //                    finalize_morph();
                 }
@@ -483,7 +488,6 @@ public class WarpView extends JFrame {
         for(int i = 0; i < src_triangles.size(); i++)
         {
                MorphTools.warpTriangle(orig_img.getBufferedImage(), dest_img.getBufferedImage(), src_triangles.get(i), dest_triangles.get(i), null, null);
-
         }
 
     }

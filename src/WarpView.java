@@ -189,7 +189,6 @@ public class WarpView extends JFrame {
         public void actionPerformed(ActionEvent e) {
 
 
-
             make_betweens();
 
             if(frames.isEmpty())
@@ -471,9 +470,6 @@ public class WarpView extends JFrame {
             //timer actives every frame
             morph_timer = new Timer((1000*seconds)/frames_sec, actionEvent -> {
 
-                morph(dest_img);
-                ClassLoader loader = getClass().getClassLoader();
-
                 Icon temp = new ImageIcon(frames.get(timer_counter+1).getBufferedImage());
 
                 morphing_image_label.setIcon(temp);
@@ -483,7 +479,6 @@ public class WarpView extends JFrame {
                 timer_counter++;
                 if(timer_counter == (seconds*frames_sec)-2) {
                     morph_timer.stop();
-//                    finalize_morph();
                 }
             });
 
@@ -536,13 +531,13 @@ public class WarpView extends JFrame {
         orig_points = orig_img.getMappingPoints();
         end_points = dest_img.getMappingPoints();
 
-        inc_x_array = new double[dest_img.getGridLength()][dest_img.getGridHeight()];
-        inc_y_array = new double[dest_img.getGridLength()][dest_img.getGridHeight()];
+        inc_x_array = new double[dest_img.getGridHeight()][dest_img.getGridLength()];
+        inc_y_array = new double[dest_img.getGridHeight()][dest_img.getGridLength()];
 
         //for loop to get increments
-        for(int i = 0; i<dest_img.getGridLength(); i++)
+        for(int i = 0; i<dest_img.getGridHeight(); i++)
         {
-            for(int j = 0; j < dest_img.getGridHeight(); j++)
+            for(int j = 0; j < dest_img.getGridLength(); j++)
             {
                 inc_x_array[i][j] =  (end_points[i][j].getX() - orig_points[i][j].getX())/num_increments;
                 inc_y_array[i][j] =  (end_points[i][j].getY() - orig_points[i][j].getY())/num_increments;
@@ -579,7 +574,6 @@ public class WarpView extends JFrame {
             src_triangles.add(new Triangle(src_tri[i][0].x,src_tri[i][0].y,src_tri[i][1].x,src_tri[i][1].y,src_tri[i][2].x,src_tri[i][2].y ));
             dest_triangles.add(new Triangle(dest_tri[i][0].x,dest_tri[i][0].y,dest_tri[i][1].x,dest_tri[i][1].y,dest_tri[i][2].x,dest_tri[i][2].y ));
         }
-
     }
 
     public void blend(MappedImage frame, int step) {
